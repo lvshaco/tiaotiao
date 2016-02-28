@@ -1,0 +1,30 @@
+#!/bin/bash
+
+user=root
+ip=60.174.233.70
+port=22
+password=QWER1234
+src=tiaotiao
+dst=/root
+
+mkdir -pv .tmp_dist
+cp package.json .tmp_dist
+cp -r src .tmp_dist
+cp -r node_modules .tmp_dist
+expect -c "
+spawn scp -r -P $port .tmp_dist $user@$ip:$dst
+expect {
+\"*password:\" {send \"$password\r\"}
+}
+interact;
+"
+expect -c "
+spawn ssh -l $user -p $port $ip
+expect {
+\"*password:\" {send \"$password\r\"}
+}
+send \"mkdir -pv project/tiaotiao && mv .tmp_dist/* project/tiaotiao && rm -rf .tmp_dist\n\";
+interact;
+"
+
+rm -rf .tmp_dist
