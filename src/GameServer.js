@@ -188,6 +188,7 @@ GameServer.prototype.start = function() {
         // -----/Client authenticity check code -----
 
         function close(error) {
+            console.log("close by error:"+ error);
             // Log disconnections
             this.server.log.onDisconnect(this.socket.remoteAddress);
 
@@ -210,6 +211,18 @@ GameServer.prototype.start = function() {
             this.socket.sendPacket = function() {
                 return;
             }; // Clear function so no packets are sent
+
+            var len = this.server.clients.length;
+            //console.log("close client len:"+ len);
+            for (var i = 0; i < len; i++) {
+                var c = this.server.clients[i].playerTracker;
+                if (c === client) {
+                    //console.log("remove player");
+                    this.server.clients.splice(i, 1);
+                    break;
+                }
+            }
+
         }
 
         ws.remoteAddress = ws._socket.remoteAddress;

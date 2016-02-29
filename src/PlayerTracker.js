@@ -191,8 +191,8 @@ PlayerTracker.prototype.update = function() {
     //    updateNodes.length > 0 ||
     //    nonVisibleNodes.length > 0) 
     {
-        console.log('sendUpdateNodes destroy:'+this.nodeDestroyQueue.length+
-                ' unvisible:'+nonVisibleNodes.length+' update:'+updateNodes.length);
+        //console.log('sendUpdateNodes destroy:'+this.nodeDestroyQueue.length+
+        //        ' unvisible:'+nonVisibleNodes.length+' update:'+updateNodes.length);
         this.socket.sendPacket(new Packet.UpdateNodes(
             this.nodeDestroyQueue,
             updateNodes,
