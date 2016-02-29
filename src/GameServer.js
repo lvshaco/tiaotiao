@@ -181,9 +181,9 @@ GameServer.prototype.start = function() {
             origin != 'https://localhost' &&
             origin != 'http://127.0.0.1' &&
             origin != 'https://127.0.0.1') {
-            console.log("origin error:close");
-            ws.close();
-            return;
+            //console.log("origin error:close");
+            //ws.close();
+            //return;
         }
         // -----/Client authenticity check code -----
 

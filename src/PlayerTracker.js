@@ -187,19 +187,20 @@ PlayerTracker.prototype.update = function() {
     }
 
     // Send packet
-    if (this.nodeDestroyQueue.length > 0 || 
-        updateNodes.length > 0 ||
-        nonVisibleNodes.length > 0) {
+    //if (this.nodeDestroyQueue.length > 0 || 
+    //    updateNodes.length > 0 ||
+    //    nonVisibleNodes.length > 0) 
+    {
         console.log('sendUpdateNodes destroy:'+this.nodeDestroyQueue.length+
                 ' unvisible:'+nonVisibleNodes.length+' update:'+updateNodes.length);
+        this.socket.sendPacket(new Packet.UpdateNodes(
+            this.nodeDestroyQueue,
+            updateNodes,
+            nonVisibleNodes,
+            this.scrambleX,
+            this.scrambleY
+        ));
     }
-    this.socket.sendPacket(new Packet.UpdateNodes(
-        this.nodeDestroyQueue,
-        updateNodes,
-        nonVisibleNodes,
-        this.scrambleX,
-        this.scrambleY
-    ));
 
     this.nodeDestroyQueue = []; // Reset destroy queue
     this.nodeAdditionQueue = []; // Reset addition queue
@@ -207,7 +208,7 @@ PlayerTracker.prototype.update = function() {
     // Update leaderboard
     if (this.tickLeaderboard <= 0) {
         //console.log('sendLeaderBoard');
-        this.socket.sendPacket(this.gameServer.lb_packet);
+        //this.socket.sendPacket(this.gameServer.lb_packet);
         this.tickLeaderboard = 10; // 20 ticks = 1 second
     } else {
         this.tickLeaderboard--;

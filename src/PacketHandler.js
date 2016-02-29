@@ -95,6 +95,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                 this.protocol = view.getUint32(1, true);
                 // Send SetBorder packet first
                 var c = this.gameServer.config;
+                console.log('sendAddNode');
                 this.socket.sendPacket(new Packet.SetBorder(
                     c.borderLeft + this.socket.playerTracker.scrambleX,
                     c.borderRight + this.socket.playerTracker.scrambleX,
