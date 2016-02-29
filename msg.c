@@ -58,7 +58,7 @@ struct UpdateNodes {
     } vector; 
 
     struct {
-        struct nodeid;
+        uint32_t nodeid;
         int32_t posx;
         int32_t posy;
         int16_t size;
