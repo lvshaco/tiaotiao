@@ -25,7 +25,7 @@ UpdateNodes.prototype.build = function() {
     var buf = new ArrayBuffer(1 +
             2+this.destroyQueue.length * 8 + 
             4+this.nonVisibleNodes.length * 4 +
-            nodesLength;
+            nodesLength);
     var view = new DataView(buf);
 
     view.setUint8(0, 16, true); // Packet ID

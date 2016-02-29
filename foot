@@ -23,7 +23,7 @@ spawn ssh -l $user -p $port $ip
 expect {
 \"*password:\" {send \"$password\r\"}
 }
-send \"mkdir -pv project/tiaotiao && mv .tmp_dist/* project/tiaotiao && rm -rf .tmp_dist\n\";
+send \"mkdir -pv project/tiaotiao && rm -rf project/tiaotiao/* && mv .tmp_dist/* project/tiaotiao && rm -rf .tmp_dist\n\";
 interact;
 "
 
