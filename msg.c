@@ -52,11 +52,12 @@ struct UpdateNodes {
         uint32_t nodeid;
     } vector;
 
-    uint32_t unvisible_count;
+    uint16_t unvisible_count;
     struct {
         uint32_t nodeid;
     } vector; 
 
+    uint16_t node_count;
     struct {
         uint32_t nodeid;
         int32_t posx;

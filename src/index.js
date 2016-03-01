@@ -20,6 +20,10 @@ process.argv.forEach(function(val) {
     }
 });
 
+process.on('SIGHUP', function() {
+  console.log('signal SIGHUP.');
+});
+
 // Run Ogar
 var gameServer = new GameServer();
 gameServer.start();

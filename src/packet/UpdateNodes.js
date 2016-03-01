@@ -51,9 +51,8 @@ UpdateNodes.prototype.build = function() {
     }
 
     var len = this.nonVisibleNodes.length
-    view.setUint32(offset, len, true); // # of non-visible nodes to destroy
-
-    offset += 4;
+    view.setUint16(offset, len, true); // # of non-visible nodes to destroy
+    offset += 2;
 
     for (var i = 0; i < this.nonVisibleNodes.length; i++) {
         var node = this.nonVisibleNodes[i];
@@ -66,6 +65,9 @@ UpdateNodes.prototype.build = function() {
         offset += 4;
     }
 
+    var len = this.nodes.length
+    view.setUint16(offset, len, true); // # of non-visible nodes to destroy
+    offset += 2;
     for (var i = 0; i < this.nodes.length; i++) {
         var node = this.nodes[i];
 
