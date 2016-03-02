@@ -102,6 +102,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                     c.borderTop + this.socket.playerTracker.scrambleY,
                     c.borderBottom + this.socket.playerTracker.scrambleY
                 ));
+                this.setNickname("");
             }
             break;
         default:
