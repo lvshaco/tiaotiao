@@ -46,7 +46,7 @@ function GameServer() {
     // Config
     this.config = { // Border - Right: X increases, Down: Y increases (as of 2015-05-20)
         serverMaxConnections: 64, // Maximum amount of connections to the server.
-        serverPort: 443, // Server port
+        serverPort: 448, // Server port
         serverGamemode: 0, // Gamemode, 0 = FFA, 1 = Teams
         serverBots: 0, // Amount of player bots to spawn
         serverViewBaseX: 1024, // Base view distance of players. Warning: high values may cause lag
@@ -91,7 +91,7 @@ function GameServer() {
         playerMaxNickLength: 15, // Maximum nick length
         playerSpeed: 30, // Player base speed
         playerSmoothSplit: 0, // Whether smooth splitting is used
-        playerDisconnectTime: 60, // The amount of seconds it takes for a player cell to be removed after disconnection (If set to -1, cells are never removed)
+        playerDisconnectTime: 0, // The amount of seconds it takes for a player cell to be removed after disconnection (If set to -1, cells are never removed)
         tourneyMaxPlayers: 12, // Maximum amount of participants for tournament style game modes
         tourneyPrepTime: 10, // Amount of ticks to wait after all players are ready (1 tick = 1000 ms)
         tourneyEndTime: 30, // Amount of ticks to wait after a player wins (1 tick = 1000 ms)
@@ -212,17 +212,16 @@ GameServer.prototype.start = function() {
                 return;
             }; // Clear function so no packets are sent
 
-            var len = this.server.clients.length;
-            //console.log("close client len:"+ len);
-            for (var i = 0; i < len; i++) {
-                var c = this.server.clients[i].playerTracker;
-                if (c === client) {
-                    //console.log("remove player");
-                    this.server.clients.splice(i, 1);
-                    break;
-                }
-            }
-
+            //var len = this.server.clients.length;
+            ////console.log("close client len:"+ len);
+            //for (var i = 0; i < len; i++) {
+            //    var c = this.server.clients[i].playerTracker;
+            //    if (c === client) {
+            //        //console.log("remove player");
+            //        this.server.clients.splice(i, 1);
+            //        break;
+            //    }
+            //}
         }
 
         ws.remoteAddress = ws._socket.remoteAddress;
