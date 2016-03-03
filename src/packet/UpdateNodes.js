@@ -24,13 +24,13 @@ UpdateNodes.prototype.build = function() {
 
     var buf = new ArrayBuffer(1 +
             2+this.destroyQueue.length * 8 + 
-            4+this.nonVisibleNodes.length * 4 +
-            nodesLength);
+            2+this.nonVisibleNodes.length * 4 +
+            2+nodesLength);
     var view = new DataView(buf);
 
     view.setUint8(0, 16, true); // Packet ID
     view.setUint16(1, this.destroyQueue.length, true); // Nodes to be destroyed
-
+    //console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
     var offset = 3;
     for (var i = 0; i < this.destroyQueue.length; i++) {
         var node = this.destroyQueue[i];
@@ -47,6 +47,7 @@ UpdateNodes.prototype.build = function() {
         view.setUint32(offset, killer, true); // Killer ID
         view.setUint32(offset + 4, node.nodeId, true); // Node ID
 
+        //console.log("D--------------------------------i:"+i+" eatId:"+killer+" eatedId:"+node.nodeId);
         offset += 8;
     }
 
@@ -62,6 +63,7 @@ UpdateNodes.prototype.build = function() {
         }
 
         view.setUint32(offset, node.nodeId, true);
+        //console.log("U--------------------------------i:"+i+" id:"+node.nodeId);
         offset += 4;
     }
 
@@ -85,6 +87,7 @@ UpdateNodes.prototype.build = function() {
         view.setUint8(offset + 17, node.spiked, true); // Flags
         offset += 18;
 
+        //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
         view.setUint8(offset, 0, true);
         offset += 1;
         //var name = node.getName();

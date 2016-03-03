@@ -272,6 +272,10 @@ GameServer.prototype.getRandomPosition = function() {
 };
 
 GameServer.prototype.getRandomSpawn = function() {
+    //return {
+    //    x: 3000,
+    //    y: 3000
+    //};
     // Random spawns for players
     var pos;
 
@@ -496,8 +500,11 @@ GameServer.prototype.updateFood = function() {
 
 GameServer.prototype.spawnFood = function() {
     var f = new Entity.Food(this.getNextNodeId(), null, this.getRandomPosition(), this.config.foodMass, this);
+    //var pos = {x:3100, y:3100};
+    //var f = new Entity.Food(this.getNextNodeId(), null, pos, this.config.foodMass, this);
     f.setColor(this.getRandomColor());
 
+    //console.log("spawnFood:"+f.nodeId+" x:"+f.position.x+" y:"+f.position.y)
     this.addNode(f);
     this.currentFood++;
 };
