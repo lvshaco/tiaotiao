@@ -5,6 +5,7 @@ function PlayerTracker(gameServer, socket) {
     this.pID = -1;
     this.disconnect = -1; // Disconnection
     this.name = "";
+    this.picture = 0;
     this.gameServer = gameServer;
     this.socket = socket;
     this.nodeAdditionQueue = [];

@@ -8,10 +8,13 @@ src=tiaotiao
 dst=/root
 
 mkdir -pv .tmp_dist
+cp gameserver.ini .tmp_dist
+cp start .tmp_dist
 cp package.json .tmp_dist
 cp -r src .tmp_dist
 cp -r node_modules .tmp_dist
 expect -c "
+set timeout -1
 spawn scp -r -P $port .tmp_dist $user@$ip:$dst
 expect {
 \"*password:\" {send \"$password\r\"}
@@ -19,11 +22,12 @@ expect {
 interact;
 "
 expect -c "
+set timeout -1
 spawn ssh -l $user -p $port $ip
 expect {
 \"*password:\" {send \"$password\r\"}
 }
-send \"mkdir -pv project/tiaotiao && rm -rf project/tiaotiao/* && mv .tmp_dist/* project/tiaotiao && rm -rf .tmp_dist\n\";
+send \"mkdir -pv project/tiaotiao && rm -rf project/tiaotiao/* && mv .tmp_dist/* project/tiaotiao && rm -rf .tmp_dist && cd project/tiaotiao\n\";
 interact;
 "
 

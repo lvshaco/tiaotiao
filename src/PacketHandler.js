@@ -39,32 +39,32 @@ PacketHandler.prototype.handleMessage = function(message) {
     console.log("handleMessage:"+packetId+ " len:"+view.byteLength);
 
     switch (packetId) {
-        case 0:
-            // Check for invalid packets
-            if ((view.byteLength + 1) % 2 == 1) {
-                break;
-            }
+        //case 0:
+        //    // Check for invalid packets
+        //    if ((view.byteLength + 1) % 2 == 1) {
+        //        break;
+        //    }
 
-            // Set Nickname
-            var nick = "";
-            var maxLen = this.gameServer.config.playerMaxNickLength * 2; // 2 bytes per char
-            for (var i = 1; i < view.byteLength && i <= maxLen; i += 2) {
-                var charCode = view.getUint16(i, true);
-                if (charCode == 0) {
-                    break;
-                }
+        //    // Set Nickname
+        //    var nick = "";
+        //    var maxLen = this.gameServer.config.playerMaxNickLength * 2; // 2 bytes per char
+        //    for (var i = 1; i < view.byteLength && i <= maxLen; i += 2) {
+        //        var charCode = view.getUint16(i, true);
+        //        if (charCode == 0) {
+        //            break;
+        //        }
 
-                nick += String.fromCharCode(charCode);
-            }
-            this.setNickname(nick);
-            break;
-        case 1:
-            // Spectate mode
-            if (this.socket.playerTracker.cells.length <= 0) {
-                // Make sure client has no cells
-                this.socket.playerTracker.spectate = true;
-            }
-            break;
+        //        nick += String.fromCharCode(charCode);
+        //    }
+        //    //this.setNickname(nick);
+        //    break;
+        //case 1:
+        //    // Spectate mode
+        //    if (this.socket.playerTracker.cells.length <= 0) {
+        //        // Make sure client has no cells
+        //        this.socket.playerTracker.spectate = true;
+        //    }
+        //    break;
         case 16:
             // Set Target
             //if (view.byteLength == 13) {
@@ -78,21 +78,33 @@ PacketHandler.prototype.handleMessage = function(message) {
             // Space Press - Split cell
             this.pressSpace = true;
             break;
-        case 18:
-            // Q Key Pressed
-            this.pressQ = true;
-            break;
-        case 19:
-            // Q Key Released
-            break;
+        //case 18:
+        //    // Q Key Pressed
+        //    this.pressQ = true;
+        //    break;
+        //case 19:
+        //    // Q Key Released
+        //    break;
         case 21:
             // W Press - Eject mass
             this.pressW = true;
             break;
         case 255:
             // Connection Start
-            if (view.byteLength == 5) {
+            if (view.byteLength >= 7) {
                 this.protocol = view.getUint32(1, true);
+                var index = view.getUint8(5, true);
+                var name_len = view.getUint8(6, true);
+                var nick = "";
+                var maxLen = this.gameServer.config.playerMaxNickLength * 2; // 2 bytes per char
+                for (var i=7; i<view.byteLength && i<=maxlen; i+=1) {
+                    var charCode = view.getUint8(i,true);
+                    if (charCode == 0) {
+                        break;
+                    }
+                    nick += String.fromCharCode(charCode);
+                }
+                this.enterBoard(nick, index);
                 // Send SetBorder packet first
                 var c = this.gameServer.config;
                 console.log('sendAddNode');
@@ -102,7 +114,6 @@ PacketHandler.prototype.handleMessage = function(message) {
                     c.borderTop + this.socket.playerTracker.scrambleY,
                     c.borderBottom + this.socket.playerTracker.scrambleY
                 ));
-                this.setNickname("");
             }
             break;
         default:
@@ -110,12 +121,12 @@ PacketHandler.prototype.handleMessage = function(message) {
     }
 };
 
-PacketHandler.prototype.setNickname = function(newNick) {
+PacketHandler.prototype.enterBoard = function(newNick, index) {
     var client = this.socket.playerTracker;
     if (client.cells.length < 1) {
         // Set name first
         client.setName(newNick);
-
+        client.picture = index;
         // If client has no cells... then spawn a player
         this.gameServer.gameMode.onPlayerSpawn(this.gameServer, client);
 

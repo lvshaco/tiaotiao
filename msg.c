@@ -7,7 +7,10 @@
 // 255 进入棋盘
 struct EnterBoard {
     MSG_HEAD;
-    uint32_t protocol;
+    uint32_t protocol; // 保留字段，当前为0
+    uint8_t index; // 创建的index
+    uint8_t name_len; // 名字长度
+    name bytes; // 名字字节
 };
 
 // 21 吐出质量（按键）
@@ -63,12 +66,13 @@ struct UpdateNodes {
         int32_t posx;
         int32_t posy;
         int16_t size;
+        uint16_t index; // index 客户端取模
         uint8_t r;
         uint8_t g;
         uint8_t b;
         uint8_t spike;
         uint8_t name_len; // 名字的长度
-        char name[]; // 有效的名字
+        name bytes;// 名字字节
     } vector;
 }; 
 

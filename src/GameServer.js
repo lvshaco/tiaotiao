@@ -272,10 +272,7 @@ GameServer.prototype.getRandomPosition = function() {
 };
 
 GameServer.prototype.getRandomSpawn = function() {
-    //return {
-    //    x: 3000,
-    //    y: 3000
-    //};
+    //return {x: 3000,y: 3000};
     // Random spawns for players
     var pos;
 

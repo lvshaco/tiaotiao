@@ -6,6 +6,11 @@ function Cell(nodeId, owner, position, mass, gameServer) {
         g: 255,
         b: 0
     };
+    if (owner) {
+        // do null
+    } else {
+        this.picture = Math.floor(Math.random()*65535);
+    }
     this.position = position;
     this.mass = mass; // Starting mass of the cell
     this.cellType = -1; // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
@@ -32,6 +37,14 @@ Cell.prototype.getName = function() {
         return this.owner.name;
     } else {
         return "";
+    }
+};
+
+Cell.prototype.getPicture = function() {
+    if (this.owner) {
+        return this.owner.picture;
+    } else {
+        return this.picture;
     }
 };
 

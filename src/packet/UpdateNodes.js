@@ -30,7 +30,7 @@ UpdateNodes.prototype.build = function() {
 
     view.setUint8(0, 16, true); // Packet ID
     view.setUint16(1, this.destroyQueue.length, true); // Nodes to be destroyed
-    //console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
+    console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
     var offset = 3;
     for (var i = 0; i < this.destroyQueue.length; i++) {
         var node = this.destroyQueue[i];
@@ -81,25 +81,26 @@ UpdateNodes.prototype.build = function() {
         view.setInt32(offset + 4, node.position.x + this.scrambleX, true); // X position
         view.setInt32(offset + 8, node.position.y + this.scrambleY, true); // Y position
         view.setInt16(offset + 12, node.getSize(), true); // Mass formula: Radius (size) = (mass * mass) / 100
-        view.setUint8(offset + 14, node.color.r, true); // Color (R)
-        view.setUint8(offset + 15, node.color.g, true); // Color (G)
-        view.setUint8(offset + 16, node.color.b, true); // Color (B)
-        view.setUint8(offset + 17, node.spiked, true); // Flags
-        offset += 18;
+        view.SetUint16(offset + 14, node.getPicture(), true); 
+        view.setUint8(offset + 16, node.color.r, true); // Color (R)
+        view.setUint8(offset + 17, node.color.g, true); // Color (G)
+        view.setUint8(offset + 18, node.color.b, true); // Color (B)
+        view.setUint8(offset + 19, node.spiked, true); // Flags
+        offset += 20;
 
         //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
-        view.setUint8(offset, 0, true);
+        view.setUint8(offset, name.length, true);
         offset += 1;
-        //var name = node.getName();
-        //if (name) {
-        //    for (var j = 0; j < name.length; j++) {
-        //        var c = name.charCodeAt(j);
-        //        if (c) {
-        //            view.setUint16(offset, c, true);
-        //        }
-        //        offset += 2;
-        //    }
-        //}
+        var name = node.getName();
+        if (name) {
+            for (var j = 0; j < name.length; j++) {
+                var c = name.charCodeAt(j);
+                if (c) {
+                    view.setUint8(offset, c, true);
+                }
+                offset += 1;
+            }
+        }
 
         //view.setUint16(offset, 0, true); // End of string
         //offset += 2;

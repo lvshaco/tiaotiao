@@ -1,0 +1,6 @@
+#!/bin/bash
+
+netstat -an |grep 448
+pkill node
+netstat -an |grep 448
+nohup node ../tiaotiao &
