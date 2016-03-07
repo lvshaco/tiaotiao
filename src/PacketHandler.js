@@ -97,7 +97,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                 var name_len = view.getUint8(6, true);
                 var nick = "";
                 var maxLen = this.gameServer.config.playerMaxNickLength * 2; // 2 bytes per char
-                for (var i=7; i<view.byteLength && i<=maxlen; i+=1) {
+                for (var i=7; i<view.byteLength && i<=maxLen; i+=1) {
                     var charCode = view.getUint8(i,true);
                     if (charCode == 0) {
                         break;

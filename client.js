@@ -9,9 +9,11 @@ var ws = new WebSocket(wsServer);
 ws.on("open", function (e) {
 console.log("Connected to WebSocket server.");
 
-var msg = new Buffer(5);
+var msg = new Buffer(7);
 msg.writeUInt8(255, 0);
 msg.writeUInt32LE(0, 1);
+msg.writeUInt8(0, 5);
+msg.writeUInt8(0, 6);
 console.log(showProperties(ws));
 ws.send(msg);
 console.log("EnterBoard...")

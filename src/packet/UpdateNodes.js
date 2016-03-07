@@ -19,7 +19,7 @@ UpdateNodes.prototype.build = function() {
         }
 
         //nodesLength = nodesLength + 20 + (node.getName().length * 2);
-        nodesLength = nodesLength + 19; 
+        nodesLength = nodesLength + 21 + (node.getName().length); 
     }
 
     var buf = new ArrayBuffer(1 +
@@ -81,7 +81,7 @@ UpdateNodes.prototype.build = function() {
         view.setInt32(offset + 4, node.position.x + this.scrambleX, true); // X position
         view.setInt32(offset + 8, node.position.y + this.scrambleY, true); // Y position
         view.setInt16(offset + 12, node.getSize(), true); // Mass formula: Radius (size) = (mass * mass) / 100
-        view.SetUint16(offset + 14, node.getPicture(), true); 
+        view.setUint16(offset + 14, node.getPicture(), true); 
         view.setUint8(offset + 16, node.color.r, true); // Color (R)
         view.setUint8(offset + 17, node.color.g, true); // Color (G)
         view.setUint8(offset + 18, node.color.b, true); // Color (B)
@@ -89,10 +89,10 @@ UpdateNodes.prototype.build = function() {
         offset += 20;
 
         //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
-        view.setUint8(offset, name.length, true);
-        offset += 1;
         var name = node.getName();
         if (name) {
+            view.setUint8(offset, name.length, true);
+            offset += 1;
             for (var j = 0; j < name.length; j++) {
                 var c = name.charCodeAt(j);
                 if (c) {
@@ -100,6 +100,9 @@ UpdateNodes.prototype.build = function() {
                 }
                 offset += 1;
             }
+        } else {
+            view.setUint8(offset, 0, true);
+            offset += 1;
         }
 
         //view.setUint16(offset, 0, true); // End of string
