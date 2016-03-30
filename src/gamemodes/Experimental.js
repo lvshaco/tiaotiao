@@ -153,10 +153,6 @@ function MotherCell() { // Temporary - Will be in its own file if Zeach decides 
 
 MotherCell.prototype = new Cell(); // Base
 
-MotherCell.prototype.getEatingRange = function() {
-    return this.getSize() / 3.14;
-};
-
 MotherCell.prototype.update = function(gameServer) {
     if (Math.random() * 100 > 97) {
         var maxFood = Math.random() * 2; // Max food spawned per tick
@@ -216,7 +212,7 @@ MotherCell.prototype.checkEatCell = function(check, safeMass, gameServer) {
 
     // Very simple yet very powerful
     var dist = this.getDist(this.position.x, this.position.y, check.position.x, check.position.y);
-    var allowDist = this.getSize() - check.getEatingRange();
+    var allowDist = check.getSize();//this.getSize() - check.getEatingRange();
     if (dist < allowDist) {
         // Eat it
         gameServer.removeNode(check);

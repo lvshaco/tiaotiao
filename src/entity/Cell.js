@@ -11,6 +11,7 @@ function Cell(nodeId, owner, position, mass, gameServer) {
     } else {
         this.picture = Math.floor(Math.random()*65535);
     }
+    this.last_move_angle = 0;
     this.position = position;
     this.mass = mass; // Starting mass of the cell
     this.cellType = -1; // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
@@ -64,30 +65,34 @@ Cell.prototype.getType = function() {
 
 Cell.prototype.getSize = function() {
     // Calculates radius based on cell mass
-    return Math.ceil(Math.sqrt(100 * this.mass));
+    return this.mass * 0.5
+    //return Math.ceil(Math.sqrt(100 * this.mass));
 };
 
 Cell.prototype.getSquareSize = function() {
     // R * R
-    return (100 * this.mass) >> 0;
+    return this.getSize() * this.getSize();
 };
 
 Cell.prototype.addMass = function(n) {
     this.mass += n;
-    if (this.mass > this.gameServer.config.playerMaxMass && this.owner.cells.length < this.gameServer.config.playerMaxCells) {
-        var splitMass = this.mass / 2;
-        var randomAngle = Math.random() * 6.28 // Get random angle
-        this.gameServer.createPlayerCell(this.owner, this, randomAngle, splitMass);
-    } else {
-        this.mass = Math.min(this.mass, this.gameServer.config.playerMaxMass);
-    }
+    //if (this.mass > this.gameServer.config.playerMaxMass && this.owner.cells.length < this.gameServer.config.playerMaxCells) {
+    //    var splitMass = this.mass / 2;
+    //    var randomAngle = Math.random() * 6.28 // Get random angle
+    //    this.gameServer.createPlayerCell(this.owner, this, randomAngle, splitMass);
+    //} else {
+    //    this.mass = Math.min(this.mass, this.gameServer.config.playerMaxMass);
+    //}
 };
 
 Cell.prototype.getSpeed = function() {
     // Old formula: 5 + (20 * (1 - (this.mass/(70+this.mass))));
     // Based on 50ms ticks. If updateMoveEngine interval changes, change 50 to new value
     // (should possibly have a config value for this?)
-    return this.gameServer.config.playerSpeed * Math.pow(this.mass, -0.22) * 50 / 40;
+    var speed = this.gameServer.config.playerSpeed - 
+        0.000568283390782104 * (this.mass-this.gameServer.config.playerStartMass);
+    if (speed < 0.3) speed = 0.3;
+    return speed;
 };
 
 Cell.prototype.setAngle = function(radians) {
@@ -102,10 +107,6 @@ Cell.prototype.setMoveEngineData = function(speed, ticks, decay) {
     this.moveEngineSpeed = speed;
     this.moveEngineTicks = ticks;
     this.moveDecay = isNaN(decay) ? 0.75 : decay;
-};
-
-Cell.prototype.getEatingRange = function() {
-    return 0; // 0 for ejected cells
 };
 
 Cell.prototype.getKiller = function() {

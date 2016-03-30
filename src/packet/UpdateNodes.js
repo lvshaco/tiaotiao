@@ -80,7 +80,7 @@ UpdateNodes.prototype.build = function() {
         view.setUint32(offset, node.nodeId, true); // Node ID
         view.setInt32(offset + 4, node.position.x + this.scrambleX, true); // X position
         view.setInt32(offset + 8, node.position.y + this.scrambleY, true); // Y position
-        view.setInt16(offset + 12, node.getSize(), true); // Mass formula: Radius (size) = (mass * mass) / 100
+        view.setInt16(offset + 12, node.mass, true); // Mass formula: Radius (size) = (mass * mass) / 100
         view.setUint16(offset + 14, node.getPicture(), true); 
         view.setUint8(offset + 16, node.color.r, true); // Color (R)
         view.setUint8(offset + 17, node.color.g, true); // Color (G)

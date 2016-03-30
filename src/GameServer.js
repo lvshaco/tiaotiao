@@ -65,7 +65,7 @@ function GameServer() {
         foodSpawnAmount: 10, // The amount of food to spawn per interval
         foodStartAmount: 100, // The starting amount of food in the map
         foodMaxAmount: 500, // Maximum food cells on the map
-        foodMass: 1, // Starting food size (In mass)
+        foodMass: 5, // Starting food size (In mass)
         foodMassGrow: 1, // Enable food mass grow ?
         foodMassGrowPossiblity: 50, // Chance for a food to has the ability to be self growing
         foodMassLimit: 5, // Maximum mass for a food can grow
@@ -79,17 +79,17 @@ function GameServer() {
         ejectMassLoss: 15, // Mass lost when ejecting cells
         ejectSpeed: 100, // Base speed of ejected cells
         ejectSpawnPlayer: 50, // Chance for a player to spawn from ejected mass
-        playerStartMass: 10, // Starting mass of the player cell.
+        playerStartMass: 30, // Starting mass of the player cell.
         playerMaxMass: 22500, // Maximum mass a player can have
-        playerMinMassEject: 32, // Mass required to eject a cell
-        playerMinMassSplit: 36, // Mass required to split
+        playerMinMassEject: 100, // Mass required to eject a cell
+        //playerMinMassSplit: 36, // Mass required to split
         playerMaxCells: 16, // Max cells the player is allowed to have
         playerRecombineTime: 30, // Base amount of seconds before a cell is allowed to recombine
         playerMassAbsorbed: 1.0, // Fraction of player cell's mass gained upon eating
         playerMassDecayRate: .002, // Amount of mass lost per second
         playerMinMassDecay: 9, // Minimum mass for decay to occur
         playerMaxNickLength: 15, // Maximum nick length
-        playerSpeed: 30, // Player base speed
+        playerSpeed: 5, // Player base speed
         playerSmoothSplit: 0, // Whether smooth splitting is used
         playerDisconnectTime: 0, // The amount of seconds it takes for a player cell to be removed after disconnection (If set to -1, cells are never removed)
         tourneyMaxPlayers: 12, // Maximum amount of participants for tournament style game modes
@@ -564,26 +564,6 @@ GameServer.prototype.getDist = function(x1, y1, x2, y2) { // Use Pythagoras theo
 GameServer.prototype.updateMoveEngine = function(moveCells) {
     // Move player cells
     var len = this.nodesPlayer.length;
-
-    // Sort cells to move the cells close to the mouse first
-    /*
-    var srt = [];
-    for (var i = 0; i < len; i++)
-        srt[i] = i;
-
-    for (var i = 0; i < len; i++) {
-        for (var j = i + 1; j < len; j++) {
-            var clientI = this.nodesPlayer[srt[i]].owner;
-            var clientJ = this.nodesPlayer[srt[j]].owner;
-            if (this.getDist(this.nodesPlayer[srt[i]].position.x, this.nodesPlayer[srt[i]].position.y, clientI.mouse.x, clientI.mouse.y) >
-                this.getDist(this.nodesPlayer[srt[j]].position.x, this.nodesPlayer[srt[j]].position.y, clientJ.mouse.x, clientJ.mouse.y)) {
-                var aux = srt[i];
-                srt[i] = srt[j];
-                srt[j] = aux;
-            }
-        }
-    }*/
-
     for (var i = 0; i < len; i++) {
         var cell = this.nodesPlayer[i];
 
@@ -680,29 +660,25 @@ GameServer.prototype.splitCells = function(client) {
     for (var i = 0; i < len; i++) {
         var cell = client.cells[i];
 
-        var deltaY = client.mouse.y - cell.position.y;
-        var deltaX = client.mouse.x - cell.position.x;
-        var angle = Math.atan2(deltaX, deltaY);
-        if (this.createPlayerCell(client, cell, angle, cell.mass / 2) == true) splitCells++;
+        //var deltaY = client.mouse.y - cell.position.y;
+        //var deltaX = client.mouse.x - cell.position.x;
+        //var angle = Math.atan2(deltaX, deltaY);
+
+        angle = cell.last_move_angle;
+        if (client.cells.length < this.config.playerMaxCells &&
+            cell.mass >= this.config.playerStartMass*2) {
+            if (this.createPlayerCell(client, cell, angle, cell.mass / 2) == true) 
+                splitCells++;
+        }
     }
     if (splitCells > 0) client.splittingMult += 0.3; // Account anti-teaming
 };
 
 GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
-    // Returns boolean whether a cell has been split or not. You can use this in the future.
-
-    if (client.cells.length >= this.config.playerMaxCells) {
-        // Player cell limit
-        return false;
-    }
-
-    if (parent.mass < this.config.playerMinMassSplit) {
-        // Minimum mass to split
-        return false;
-    }
-
+    // Returns boolean whether a cell has been split or not. You can use this in the future. 
     // Calculate customized speed for splitting cells
-    var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 6, 150);
+    //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 6, 150);
+    var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 150);
 
     // Calculate new position
     var newPos = {
@@ -748,9 +724,19 @@ GameServer.prototype.ejectMass = function(client) {
             continue;
         }
 
-        var deltaY = client.mouse.y - cell.position.y;
-        var deltaX = client.mouse.x - cell.position.x;
-        var angle = Math.atan2(deltaX, deltaY);
+        //var deltaY = client.mouse.y - cell.position.y;
+        //var deltaX = client.mouse.x - cell.position.x;
+        ////var angle = Math.atan2(deltaX, deltaY);
+        //var angle;
+        //console.log("dx:"+deltaY+" dy:"+deltaX);
+        //if (deltaX == 0 && deltaY == 0) {
+        //    angle = cell.last_move_angle;
+        //    console.log("lastd:"+angle);
+        //} else {
+        //    angle = Math.atan2(deltaX, deltaY);
+        //    cell.last_move_angle = angle;
+        //}
+        var angle = cell.last_move_angle;
 
         // Get starting position
         var size = cell.getSize() + 0.5;
@@ -760,7 +746,7 @@ GameServer.prototype.ejectMass = function(client) {
         };
 
         // Remove mass from parent cell
-        cell.mass -= this.config.ejectMassLoss;
+        cell.mass -= this.config.ejectMass;//this.config.ejectMassLoss;
         // Randomize angle
         angle += (Math.random() * 0.6) - 0.3;
 
@@ -825,61 +811,49 @@ GameServer.prototype.getCellsInRange = function(cell) {
         }
 
         // Cell type check - Cell must be bigger than this number times the mass of the cell being eaten
-        var multiplier = 1.33;
-
-        switch (check.getType()) {
-            case 1: // Food cell
-                list.push(check);
-                check.inRange = true; // skip future collision checks for this food
-                continue;
-            case 0: // Players
-                // Can't eat self if it's not time to recombine yet
-                if (check.owner == cell.owner) {
-                    // If one of cells can't merge
-                    if (!cell.shouldRecombine || !check.shouldRecombine) {
-                        // Check if merge command was triggered on this client
-                        if (!cell.owner.mergeOverride) continue;
-                    }
-
-                    multiplier = 1.00;
+        var multiplier = 1.0;
+        if (check.getType() == 0) {
+            // Can't eat self if it's not time to recombine yet
+            if (check.owner == cell.owner) {
+                // If one of cells can't merge
+                if (!cell.shouldRecombine || !check.shouldRecombine) {
+                    // Check if merge command was triggered on this client
+                    if (!cell.owner.mergeOverride) continue;
                 }
-
-                // Can't eat team members
-                if (this.gameMode.haveTeams) {
-                    if (!check.owner) { // Error check
-                        continue;
-                    }
-
-                    if ((check.owner != cell.owner) && (check.owner.getTeam() == cell.owner.getTeam())) {
-                        continue;
-                    }
-                }
-                break;
-            default:
-                break;
+            } else {
+                multiplier = 1.2;
+            }
+            // Can't eat team members
+            if (this.gameMode.haveTeams) {
+                if (!check.owner)  // Error check
+                    continue;
+                if ((check.owner != cell.owner) && 
+                    (check.owner.getTeam() == cell.owner.getTeam()))
+                    continue;
+            }
         }
 
         // Make sure the cell is big enough to be eaten.
-        if ((check.mass * multiplier) > cell.mass) {
+        if ((check.getSize() * multiplier) > cell.getSize()) {
             continue;
         }
-
+        var ctype = check.getType();
         // Eating range
-        var xs = Math.pow(check.position.x - cell.position.x, 2);
-        var ys = Math.pow(check.position.y - cell.position.y, 2);
-        var dist = Math.sqrt(xs + ys);
-
-        var eatingRange = cell.getSize() - check.getEatingRange(); // Eating range = radius of eating cell - 31% of the radius of the cell being eaten
-        if (dist < eatingRange) {
+        var xs = check.position.x - cell.position.x; xs *=xs;
+        var ys = check.position.y - cell.position.y; ys *=ys;
+        var dist = xs+ys;
+        var eatingRange
+        if (check.getType() == 1)
+            eatingRange = cell.getSquareSize()-check.getSquareSize()
+        else 
+            eatingRange = check.getSquareSize();//cell.getSize() - check.getEatingRange(); // Eating range = radius of eating cell - 31% of the radius of the cell being eaten
+        if (dist <= eatingRange) {
             // Add to list of cells nearby
             list.push(check);
 
             // Something is about to eat this cell; no need to check for other collisions with it
             check.inRange = true;
-        } else {
-            // Not in eating range
-            continue;
-        }
+        } 
     }
     return list;
 };

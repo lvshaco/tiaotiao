@@ -59,10 +59,14 @@ PlayerCell.prototype.calcMove = function(x2, y2, gameServer, moveCell) {
         var deltaX = x2 - this.position.x;
         var angle = Math.atan2(deltaX, deltaY);
 
+        if (deltaY==0 && deltaX==0) {
+            return;
+        }
         if (isNaN(angle)) {
             return;
         }
 
+        this.last_move_angle = angle;
         var dist = this.getDist(this.position.x, this.position.y, x2, y2);
         var speed = Math.min(this.getSpeed(), dist);
 
@@ -150,10 +154,6 @@ PlayerCell.prototype.collision = function(gameServer) {
 }
 
 // Override
-
-PlayerCell.prototype.getEatingRange = function() {
-    return this.getSize() / 3.14;
-};
 
 PlayerCell.prototype.onConsume = function(consumer, gameServer) {
     // Add an inefficiency for eating other players' cells
