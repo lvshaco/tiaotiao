@@ -2,9 +2,9 @@
 var WebSocket = require('ws');
 
 function setup(){
-var wsServer = 'ws://127.0.0.1:448';
+//var wsServer = 'ws://127.0.0.1:448';
+var wsServer = 'ws://60.174.233.70:448';
 var ws = new WebSocket(wsServer);
-
 //console.log(showProperties(ws));
 ws.on("open", function (e) {
 console.log("Connected to WebSocket server.");
@@ -35,7 +35,6 @@ var msg = e.data;
 //Object.getOwnPropertyNames(msg).sort().forEach(function (val) {console.log(val, '\n')});
 var msgid = msg.readUInt8(0);
 console.log("RECEIVED: ", msg.length, msgid);
-
 if (msgid == 64) {
     console.log("GetBoarder MoveTo: ...");
      var msg = new Buffer(9);

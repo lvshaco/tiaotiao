@@ -107,7 +107,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                 this.enterBoard(nick, index);
                 // Send SetBorder packet first
                 var c = this.gameServer.config;
-                console.log('sendAddNode');
+                console.log('sendSetBorder');
                 this.socket.sendPacket(new Packet.SetBorder(
                     c.borderLeft + this.socket.playerTracker.scrambleX,
                     c.borderRight + this.socket.playerTracker.scrambleX,
@@ -127,6 +127,7 @@ PacketHandler.prototype.enterBoard = function(newNick, index) {
         // Set name first
         client.setName(newNick);
         client.picture = index;
+        client.gaming = true;
         // If client has no cells... then spawn a player
         this.gameServer.gameMode.onPlayerSpawn(this.gameServer, client);
 

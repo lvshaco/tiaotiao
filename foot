@@ -1,34 +1,31 @@
 #!/bin/bash
 
-user=root
-ip=60.174.233.70
-port=22
 password=QWER1234
-src=tiaotiao
-dst=/root
 
-mkdir -pv .tmp_dist
-cp gameserver.ini .tmp_dist
-cp start .tmp_dist
-cp package.json .tmp_dist
-cp -r src .tmp_dist
-cp -r node_modules .tmp_dist
+tar -zcf tiaotiao.tgz \
+    start \
+    gameserver.ini \
+    client.js \
+    package.json \
+    src \
+    node_modules
+
 expect -c "
 set timeout -1
-spawn scp -r -P $port .tmp_dist $user@$ip:$dst
+spawn scp tiaotiao.tgz agar:
 expect {
 \"*password:\" {send \"$password\r\"}
 }
 interact;
 "
+rm -rf tiaotiao.tgz
+
 expect -c "
 set timeout -1
-spawn ssh -l $user -p $port $ip
+spawn ssh agar 
 expect {
 \"*password:\" {send \"$password\r\"}
 }
-send \"mkdir -pv project/tiaotiao && rm -rf project/tiaotiao/* && mv .tmp_dist/* project/tiaotiao && rm -rf .tmp_dist && cd project/tiaotiao\n\";
+send \"mkdir -pv project/tiaotiao && rm -rf project/tiaotiao/* && tar -mzxf tiaotiao.tgz -C project/tiaotiao && cd project/tiaotiao\n\";
 interact;
 "
-
-rm -rf .tmp_dist

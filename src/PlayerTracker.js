@@ -14,7 +14,7 @@ function PlayerTracker(gameServer, socket) {
     this.cells = [];
     this.mergeOverride = false; // Triggered by console command
     this.score = 0; // Needed for leaderboard
-
+    this.gaming = false;
     this.mouse = {
         x: 0,
         y: 0

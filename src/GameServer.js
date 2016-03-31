@@ -54,7 +54,7 @@ function GameServer() {
         serverStatsPort: 88, // Port for stats server. Having a negative number will disable the stats server.
         serverStatsUpdate: 60, // Amount of seconds per update for the server stats
         serverLogLevel: 1, // Logging level of the server. 0 = No logs, 1 = Logs the console, 2 = Logs console and ip connections
-        serverScrambleCoords: 1, // Toggles scrambling of coordinates. 0 = No scrambling, 1 = scrambling. Default is 1.
+        serverScrambleCoords: 0, // Toggles scrambling of coordinates. 0 = No scrambling, 1 = scrambling. Default is 1.
         serverTeamingAllowed: 1, // Toggles anti-teaming. 0 = Anti-team enabled, 1 = Anti-team disabled
         serverMaxLB: 10, //	Controls the maximum players displayed on the leaderboard.
         borderLeft: 0, // Left border of map (Vanilla value: 0)
@@ -475,9 +475,11 @@ GameServer.prototype.updateClients = function() {
         if (typeof this.clients[i] == "undefined") {
             continue;
         }
-
-        this.clients[i].playerTracker.antiTeamTick();
-        this.clients[i].playerTracker.update();
+        var playerTracker = this.clients[i].playerTracker;
+        if (playerTracker.gaming) {
+            playerTracker.antiTeamTick();
+            playerTracker.update();
+        }
     }
 };
 

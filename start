@@ -1,6 +1,11 @@
 #!/bin/bash
 
-netstat -an |grep 448
-pkill node
-netstat -an |grep 448
+echo "[STATUS]"
+netstat -nltp |grep "\<448\>"
+echo "[STOP]"
+kill -9 `pgrep -f "node ../tiaotiao"`
+netstat -nltp |grep "\<448\>"
+echo "[START]"
 nohup node ../tiaotiao &
+sleep 1
+netstat -nltp |grep "\<448\>"
