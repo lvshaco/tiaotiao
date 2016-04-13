@@ -65,7 +65,7 @@ function GameServer() {
         foodSpawnAmount: 10, // The amount of food to spawn per interval
         foodStartAmount: 100, // The starting amount of food in the map
         foodMaxAmount: 500, // Maximum food cells on the map
-        foodMass: 5, // Starting food size (In mass)
+        foodMass: 1, // Starting food size (In mass)
         foodMassGrow: 0, // Enable food mass grow ?
         foodMassGrowPossiblity: 50, // Chance for a food to has the ability to be self growing
         foodMassLimit: 5, // Maximum mass for a food can grow
