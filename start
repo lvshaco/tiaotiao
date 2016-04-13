@@ -1,11 +1,11 @@
 #!/bin/bash
-
+PWD=$(dirname "$0")
 echo "[STATUS]"
 netstat -nltp |grep "\<448\>"
 echo "[STOP]"
-kill -9 `pgrep -f "node ../tiaotiao"`
+kill -9 `pgrep -f "node tiaotiao"`
 netstat -nltp |grep "\<448\>"
 echo "[START]"
-nohup node ../tiaotiao &
+cd $PWD/../ && nohup node tiaotiao &
 sleep 1
 netstat -nltp |grep "\<448\>"

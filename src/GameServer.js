@@ -66,7 +66,7 @@ function GameServer() {
         foodStartAmount: 100, // The starting amount of food in the map
         foodMaxAmount: 500, // Maximum food cells on the map
         foodMass: 5, // Starting food size (In mass)
-        foodMassGrow: 1, // Enable food mass grow ?
+        foodMassGrow: 0, // Enable food mass grow ?
         foodMassGrowPossiblity: 50, // Chance for a food to has the ability to be self growing
         foodMassLimit: 5, // Maximum mass for a food can grow
         foodMassTimeout: 120, // The amount of interval for a food to grow its mass (in seconds)
@@ -74,20 +74,20 @@ function GameServer() {
         virusMaxAmount: 50, // Maximum amount of viruses on the map. If this amount is reached, then ejected cells will pass through viruses.
         virusStartMass: 100, // Starting virus size (In mass)
         virusFeedAmount: 7, // Amount of times you need to feed a virus to shoot it
-        ejectMass: 13, // Mass of ejected cells
-        ejectMassCooldown: 200, // Time until a player can eject mass again
+        ejectMass: 14, // Mass of ejected cells
+        ejectMassCooldown: 50, // Time until a player can eject mass again
         ejectMassLoss: 15, // Mass lost when ejecting cells
         ejectSpeed: 100, // Base speed of ejected cells
         ejectSpawnPlayer: 50, // Chance for a player to spawn from ejected mass
-        playerStartMass: 30, // Starting mass of the player cell.
+        playerStartMass: 10, // Starting mass of the player cell.
         playerMaxMass: 22500, // Maximum mass a player can have
-        playerMinMassEject: 100, // Mass required to eject a cell
-        //playerMinMassSplit: 36, // Mass required to split
+        playerMinMassEject: 32, // Mass required to eject a cell
+        playerMinMassSplit: 36, // Mass required to split
         playerMaxCells: 16, // Max cells the player is allowed to have
         playerRecombineTime: 30, // Base amount of seconds before a cell is allowed to recombine
         playerMassAbsorbed: 1.0, // Fraction of player cell's mass gained upon eating
         playerMassDecayRate: .002, // Amount of mass lost per second
-        playerMinMassDecay: 9, // Minimum mass for decay to occur
+        playerMinMassDecay: 11, // Minimum mass for decay to occur
         playerMaxNickLength: 15, // Maximum nick length
         playerSpeed: 5, // Player base speed
         playerSmoothSplit: 0, // Whether smooth splitting is used
@@ -161,6 +161,7 @@ GameServer.prototype.start = function() {
     function connectionEstablished(ws) {
         console.log("new connection");
         if (this.clients.length >= this.config.serverMaxConnections) { // Server full
+            console.log("connection is full:"+this.clients.length);
             ws.close();
             return;
         }
@@ -668,7 +669,7 @@ GameServer.prototype.splitCells = function(client) {
 
         angle = cell.last_move_angle;
         if (client.cells.length < this.config.playerMaxCells &&
-            cell.mass >= this.config.playerStartMass*2) {
+            cell.mass >= this.config.playerMinMassSplit) {
             if (this.createPlayerCell(client, cell, angle, cell.mass / 2) == true) 
                 splitCells++;
         }
@@ -823,7 +824,7 @@ GameServer.prototype.getCellsInRange = function(cell) {
                     if (!cell.owner.mergeOverride) continue;
                 }
             } else {
-                multiplier = 1.2;
+                multiplier = 1.25;
             }
             // Can't eat team members
             if (this.gameMode.haveTeams) {
@@ -833,6 +834,8 @@ GameServer.prototype.getCellsInRange = function(cell) {
                     (check.owner.getTeam() == cell.owner.getTeam()))
                     continue;
             }
+        } else if (check.getType() == 2) {
+            multiplier = 1.33;
         }
 
         // Make sure the cell is big enough to be eaten.
@@ -841,14 +844,14 @@ GameServer.prototype.getCellsInRange = function(cell) {
         }
         var ctype = check.getType();
         // Eating range
-        var xs = check.position.x - cell.position.x; xs *=xs;
-        var ys = check.position.y - cell.position.y; ys *=ys;
-        var dist = xs+ys;
+        var xs = Math.pow(check.position.x - cell.position.x, 2);
+        var ys = Math.pow(check.position.y - cell.position.y, 2);
+        var dist = Math.sqrt(xs + ys);
         var eatingRange
         if (check.getType() == 1)
-            eatingRange = cell.getSquareSize()-check.getSquareSize()
+            eatingRange = cell.getSize()-check.getSize()
         else 
-            eatingRange = check.getSquareSize();//cell.getSize() - check.getEatingRange(); // Eating range = radius of eating cell - 31% of the radius of the cell being eaten
+            eatingRange = cell.getSize()-(check.getSize()*0.8)
         if (dist <= eatingRange) {
             // Add to list of cells nearby
             list.push(check);

@@ -21,7 +21,8 @@ Virus.prototype.feed = function(feeder, gameServer) {
     gameServer.removeNode(feeder);
 
     // Check if the virus is going to explode
-    if (this.fed >= gameServer.config.virusFeedAmount) {
+    //if (this.fed >= gameServer.config.virusFeedAmount) {
+    if (this.mass >= 200) { 
         this.mass = gameServer.config.virusStartMass; // Reset mass
         this.fed = 0;
         gameServer.shootVirus(this);

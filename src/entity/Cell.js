@@ -65,8 +65,8 @@ Cell.prototype.getType = function() {
 
 Cell.prototype.getSize = function() {
     // Calculates radius based on cell mass
-    return this.mass * 0.5
-    //return Math.ceil(Math.sqrt(100 * this.mass));
+    //return this.mass * 0.5
+    return Math.ceil(Math.sqrt(100 * this.mass));
 };
 
 Cell.prototype.getSquareSize = function() {

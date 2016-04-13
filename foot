@@ -1,7 +1,5 @@
 #!/bin/bash
 
-password=QWER1234
-
 tar -zcf tiaotiao.tgz \
     start \
     gameserver.ini \
@@ -10,22 +8,6 @@ tar -zcf tiaotiao.tgz \
     src \
     node_modules
 
-expect -c "
-set timeout -1
-spawn scp tiaotiao.tgz agar:
-expect {
-\"*password:\" {send \"$password\r\"}
-}
-interact;
-"
+scp tiaotiao.tgz agar:
 rm -rf tiaotiao.tgz
-
-expect -c "
-set timeout -1
-spawn ssh agar 
-expect {
-\"*password:\" {send \"$password\r\"}
-}
-send \"mkdir -pv project/tiaotiao && rm -rf project/tiaotiao/* && tar -mzxf tiaotiao.tgz -C project/tiaotiao && cd project/tiaotiao\n\";
-interact;
-"
+ssh agar "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start";
