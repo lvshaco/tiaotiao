@@ -62,9 +62,9 @@ function GameServer() {
         borderTop: 0, // Top border of map (Vanilla value: 0)
         borderBottom: 6000, // Bottom border of map (Vanilla value: 11180.3398875)
         spawnInterval: 20, // The interval between each food cell spawn in ticks (1 tick = 50 ms)
-        foodSpawnAmount: 10, // The amount of food to spawn per interval
-        foodStartAmount: 100, // The starting amount of food in the map
-        foodMaxAmount: 500, // Maximum food cells on the map
+        foodSpawnAmount: 12, // The amount of food to spawn per interval
+        foodStartAmount: 500, // The starting amount of food in the map
+        foodMaxAmount: 2000, // Maximum food cells on the map
         foodMass: 1, // Starting food size (In mass)
         foodMassGrow: 0, // Enable food mass grow ?
         foodMassGrowPossiblity: 50, // Chance for a food to has the ability to be self growing
@@ -86,10 +86,10 @@ function GameServer() {
         playerMaxCells: 16, // Max cells the player is allowed to have
         playerRecombineTime: 30, // Base amount of seconds before a cell is allowed to recombine
         playerMassAbsorbed: 1.0, // Fraction of player cell's mass gained upon eating
-        playerMassDecayRate: .002, // Amount of mass lost per second
+        playerMassDecayRate: .006, // Amount of mass lost per second
         playerMinMassDecay: 11, // Minimum mass for decay to occur
         playerMaxNickLength: 15, // Maximum nick length
-        playerSpeed: 5, // Player base speed
+        playerSpeed: 10, // Player base speed, base on 50ms ticks
         playerSmoothSplit: 0, // Whether smooth splitting is used
         playerDisconnectTime: 0, // The amount of seconds it takes for a player cell to be removed after disconnection (If set to -1, cells are never removed)
         tourneyMaxPlayers: 12, // Maximum amount of participants for tournament style game modes
@@ -513,6 +513,8 @@ GameServer.prototype.spawnPlayer = function(player, pos, mass) {
     if (pos == null) { // Get random pos
         pos = this.getRandomSpawn();
     }
+    pos.x=1000;
+    pos.y=1000;
     if (mass == null) { // Get starting mass
         mass = this.config.playerStartMass;
     }
