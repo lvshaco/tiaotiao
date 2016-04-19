@@ -36,7 +36,7 @@ PacketHandler.prototype.handleMessage = function(message) {
     var view = new DataView(buffer);
     var packetId = view.getUint8(0, true);
 
-    console.log("handleMessage:"+packetId+ " len:"+view.byteLength);
+//    console.log("handleMessage:"+packetId+ " len:"+view.byteLength);
 
     switch (packetId) {
         //case 0:
@@ -72,6 +72,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                 var client = this.socket.playerTracker;
                 client.mouse.x = view.getInt32(1, true) - client.scrambleX;
                 client.mouse.y = view.getInt32(5, true) - client.scrambleY;
+                //console.log(client.scrambleX+" "+client.scrambleY+" mouse:"+client.mouse.x+" "+client.mouse.y);
             }
             break;
         case 17:

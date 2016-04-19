@@ -7,6 +7,10 @@ tar -zcf tiaotiao.tgz \
     src \
     node_modules
 
-scp tiaotiao.tgz agar:
+scp tiaotiao.tgz agar0:
 rm -rf tiaotiao.tgz
-ssh agar "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start";
+ssh agar0 "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1448";
+
+scp tiaotiao.tgz agar1:
+rm -rf tiaotiao.tgz
+ssh agar1 "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1449";

@@ -76,7 +76,7 @@ function GameServer() {
         virusFeedAmount: 7, // Amount of times you need to feed a virus to shoot it
         ejectMass: 14, // Mass of ejected cells
         ejectMassCooldown: 50, // Time until a player can eject mass again
-        ejectMassLoss: 15, // Mass lost when ejecting cells
+        ejectMassLoss: 0, // Mass lost when ejecting cells
         ejectSpeed: 100, // Base speed of ejected cells
         ejectSpawnPlayer: 50, // Chance for a player to spawn from ejected mass
         playerStartMass: 10, // Starting mass of the player cell.
@@ -84,7 +84,7 @@ function GameServer() {
         playerMinMassEject: 32, // Mass required to eject a cell
         playerMinMassSplit: 36, // Mass required to split
         playerMaxCells: 16, // Max cells the player is allowed to have
-        playerRecombineTime: 30, // Base amount of seconds before a cell is allowed to recombine
+        playerRecombineTime: 10, // Base amount of seconds before a cell is allowed to recombine
         playerMassAbsorbed: 1.0, // Fraction of player cell's mass gained upon eating
         playerMassDecayRate: .006, // Amount of mass lost per second
         playerMinMassDecay: 11, // Minimum mass for decay to occur
@@ -665,15 +665,13 @@ GameServer.prototype.splitCells = function(client) {
     for (var i = 0; i < len; i++) {
         var cell = client.cells[i];
 
-        //var deltaY = client.mouse.y - cell.position.y;
-        //var deltaX = client.mouse.x - cell.position.x;
-        //var angle = Math.atan2(deltaX, deltaY);
-
-        angle = cell.last_move_angle;
         if (client.cells.length < this.config.playerMaxCells &&
             cell.mass >= this.config.playerMinMassSplit) {
-            if (this.createPlayerCell(client, cell, angle, cell.mass / 2) == true) 
-                splitCells++;
+            var deltaY = client.mouse.y - cell.position.y;
+            var deltaX = client.mouse.x - cell.position.x;
+            var angle = Math.atan2(deltaX, deltaY);
+            if (angle == 0) angle = cell.last_move_angle;//Math.PI / 2;
+            if (this.createPlayerCell(client, cell, angle, cell.mass / 2) == true) splitCells++;
         }
     }
     if (splitCells > 0) client.splittingMult += 0.3; // Account anti-teaming
@@ -682,8 +680,8 @@ GameServer.prototype.splitCells = function(client) {
 GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     // Returns boolean whether a cell has been split or not. You can use this in the future. 
     // Calculate customized speed for splitting cells
-    //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 6, 150);
-    var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 150);
+    var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 6, 150);
+    //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 150);
 
     // Calculate new position
     var newPos = {
@@ -729,20 +727,10 @@ GameServer.prototype.ejectMass = function(client) {
             continue;
         }
 
-        //var deltaY = client.mouse.y - cell.position.y;
-        //var deltaX = client.mouse.x - cell.position.x;
-        ////var angle = Math.atan2(deltaX, deltaY);
-        //var angle;
-        //console.log("dx:"+deltaY+" dy:"+deltaX);
-        //if (deltaX == 0 && deltaY == 0) {
-        //    angle = cell.last_move_angle;
-        //    console.log("lastd:"+angle);
-        //} else {
-        //    angle = Math.atan2(deltaX, deltaY);
-        //    cell.last_move_angle = angle;
-        //}
-        var angle = cell.last_move_angle;
-
+        var deltaY = client.mouse.y - cell.position.y;
+        var deltaX = client.mouse.x - cell.position.x;
+        var angle = Math.atan2(deltaX, deltaY);
+       
         // Get starting position
         var size = cell.getSize() + 0.5;
         var startPos = {
@@ -751,10 +739,10 @@ GameServer.prototype.ejectMass = function(client) {
         };
 
         // Remove mass from parent cell
-        cell.mass -= this.config.ejectMass;//this.config.ejectMassLoss;
+        cell.mass -= this.config.ejectMass; //this.config.ejectMassLoss;
         // Randomize angle
         angle += (Math.random() * 0.6) - 0.3;
-
+ 
         // Create cell
         var ejected = new Entity.EjectedMass(this.getNextNodeId(), client, startPos, this.config.ejectMass, this);
         ejected.setAngle(angle);
@@ -815,6 +803,7 @@ GameServer.prototype.getCellsInRange = function(cell) {
             continue;
         }
 
+//console.log("in range======");
         // Cell type check - Cell must be bigger than this number times the mass of the cell being eaten
         var multiplier = 1.0;
         if (check.getType() == 0) {

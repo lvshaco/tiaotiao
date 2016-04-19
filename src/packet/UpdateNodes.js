@@ -1,3 +1,4 @@
+const assert = require('assert');
 function UpdateNodes(destroyQueue, nodes, nonVisibleNodes, scrambleX, scrambleY) {
     this.destroyQueue = destroyQueue;
     this.nodes = nodes;
@@ -22,20 +23,23 @@ UpdateNodes.prototype.build = function() {
         nodesLength = nodesLength + 21 + (node.getName().length); 
     }
 
-    var buf = new ArrayBuffer(1 +
+    var buflen = 1 +
             2+this.destroyQueue.length * 8 + 
             2+this.nonVisibleNodes.length * 4 +
-            2+nodesLength);
+            2+nodesLength;
+
+    var buf = new ArrayBuffer(buflen);
     var view = new DataView(buf);
 
     view.setUint8(0, 16, true); // Packet ID
     view.setUint16(1, this.destroyQueue.length, true); // Nodes to be destroyed
-    console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
+    //console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
     var offset = 3;
     for (var i = 0; i < this.destroyQueue.length; i++) {
         var node = this.destroyQueue[i];
 
         if (!node) {
+            console.log("================== invalid destorynode");
             continue;
         }
 
@@ -59,6 +63,7 @@ UpdateNodes.prototype.build = function() {
         var node = this.nonVisibleNodes[i];
 
         if (!node) {
+            console.log("================== invalid unvisiblenode");
             continue;
         }
 
@@ -80,7 +85,7 @@ UpdateNodes.prototype.build = function() {
         view.setUint32(offset, node.nodeId, true); // Node ID
         view.setInt32(offset + 4, node.position.x + this.scrambleX, true); // X position
         view.setInt32(offset + 8, node.position.y + this.scrambleY, true); // Y position
-        //console.log("node.mass"+node.mass)
+        //console.log("node:"+node.nodeId+" "+node.position.x+","+node.position.y);
         view.setInt16(offset + 12, node.getSize(), true); // Mass formula: Radius (size) = (mass * mass) / 100
         view.setUint16(offset + 14, node.getPicture(), true); 
         view.setUint8(offset + 16, node.color.r, true); // Color (R)
@@ -92,6 +97,7 @@ UpdateNodes.prototype.build = function() {
         //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
         var name = node.getName();
         if (name) {
+            //console.log("================== name:"+name+"."+name.length);
             view.setUint8(offset, name.length, true);
             offset += 1;
             for (var j = 0; j < name.length; j++) {
@@ -105,38 +111,7 @@ UpdateNodes.prototype.build = function() {
             view.setUint8(offset, 0, true);
             offset += 1;
         }
-
-        //view.setUint16(offset, 0, true); // End of string
-        //offset += 2;
     }
-
-    //var len = this.nonVisibleNodes.length + this.destroyQueue.length;
-    //view.setUint32(offset, 0, true); // End
-    //view.setUint32(offset + 4, len, true); // # of non-visible nodes to destroy
-
-    //offset += 8;
-
-    //// Destroy queue + nonvisible nodes
-    //for (var i = 0; i < this.destroyQueue.length; i++) {
-    //    var node = this.destroyQueue[i];
-
-    //    if (!node) {
-    //        continue;
-    //    }
-
-    //    view.setUint32(offset, node.nodeId, true);
-    //    offset += 4;
-    //}
-    //for (var i = 0; i < this.nonVisibleNodes.length; i++) {
-    //    var node = this.nonVisibleNodes[i];
-
-    //    if (!node) {
-    //        continue;
-    //    }
-
-    //    view.setUint32(offset, node.nodeId, true);
-    //    offset += 4;
-    //}
-
+    assert(offset==buflen, "offset="+offset+" buflen="+buflen);
     return buf;
 };

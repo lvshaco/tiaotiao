@@ -149,6 +149,8 @@ Cell.prototype.collisionCheck2 = function(objectSquareSize, objectPosition) {
     var dx = this.position.x - objectPosition.x;
     var dy = this.position.y - objectPosition.y;
 
+//console.log("in range======:"+this.position.x+ " "+this.position.y+ " "+
+    //objectPosition.x+" "+objectPosition.y);
     return (dx * dx + dy * dy + this.getSquareSize() <= objectSquareSize);
 };
 
