@@ -98,6 +98,7 @@ UpdateNodes.prototype.build = function() {
         var name = node.getName();
         if (name) {
             //console.log("================== name:"+name+"."+name.length);
+            assert(name.length < 255);
             view.setUint8(offset, name.length, true);
             offset += 1;
             for (var j = 0; j < name.length; j++) {
