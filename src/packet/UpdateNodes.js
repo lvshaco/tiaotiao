@@ -97,8 +97,9 @@ UpdateNodes.prototype.build = function() {
         //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
         var name = node.getName();
         if (name) {
-            //console.log("================== name:"+name+"."+name.length);
-            assert(name.length < 255);
+            if (name.length >= 255) {
+            console.log("================== name:"+name+"."+name.length);
+            }
             view.setUint8(offset, name.length, true);
             offset += 1;
             for (var j = 0; j < name.length; j++) {
@@ -113,6 +114,8 @@ UpdateNodes.prototype.build = function() {
             offset += 1;
         }
     }
-    assert(offset==buflen, "offset="+offset+" buflen="+buflen);
+    if (offset != buflen) {
+    console.log("offset="+offset+" buflen="+buflen);
+    }
     return buf;
 };
