@@ -72,7 +72,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                 var client = this.socket.playerTracker;
                 client.mouse.x = view.getInt32(1, true) - client.scrambleX;
                 client.mouse.y = view.getInt32(5, true) - client.scrambleY;
-                //console.log(client.scrambleX+" "+client.scrambleY+" mouse:"+client.mouse.x+" "+client.mouse.y);
+                //console.log(" mouse:"+client.mouse.x+" "+client.mouse.y);
             }
             break;
         case 17:

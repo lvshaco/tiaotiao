@@ -680,9 +680,10 @@ GameServer.prototype.splitCells = function(client) {
 GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     // Returns boolean whether a cell has been split or not. You can use this in the future. 
     // Calculate customized speed for splitting cells
-    var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 6, 150);
-    //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 150);
-
+    
+    var splitSpeed = 15* Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(mass,-0.005))/10);
+    //console.log("split:"+splitSpeed);
+    //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 300);
     // Calculate new position
     var newPos = {
         x: parent.position.x,
@@ -692,7 +693,7 @@ GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     // Create cell
     var newCell = new Entity.PlayerCell(this.getNextNodeId(), client, newPos, mass, this);
     newCell.setAngle(angle);
-    newCell.setMoveEngineData(splitSpeed, 12, 0.85);
+    newCell.setMoveEngineData(splitSpeed, 6, 0.70);
     if (this.config.playerSmoothSplit == 1) {
         newCell.collisionRestoreTicks = 12;
         parent.collisionRestoreTicks = 12;

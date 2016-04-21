@@ -86,13 +86,7 @@ Cell.prototype.addMass = function(n) {
 };
 
 Cell.prototype.getSpeed = function() {
-    // Old formula: 5 + (20 * (1 - (this.mass/(70+this.mass))));
-    // Based on 50ms ticks. If updateMoveEngine interval changes, change 50 to new value
-    // (should possibly have a config value for this?)
-    var speed = this.gameServer.config.playerSpeed - 
-        0.000568283390782104 * (this.mass-this.gameServer.config.playerStartMass);
-    if (speed < 0.3) speed = 0.3;
-    return speed;
+    return Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(this.mass,-0.005))/10);
 };
 
 Cell.prototype.setAngle = function(radians) {
@@ -167,7 +161,7 @@ Cell.prototype.calcMovePhys = function(config) {
     // Movement engine
     if (this.moveEngineSpeed <= this.moveDecay * 3) this.moveEngineSpeed = 0;
     var speedDecrease = this.moveEngineSpeed - this.moveEngineSpeed * this.moveDecay;
-    this.moveEngineSpeed -= speedDecrease / 2; // Decaying speed twice as slower
+    this.moveEngineSpeed -= speedDecrease; // Decaying speed twice as slower
     this.moveEngineTicks -= 0.5; // Ticks passing twice as slower
 
     // Ejected cell collision
