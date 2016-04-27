@@ -681,7 +681,7 @@ GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     // Returns boolean whether a cell has been split or not. You can use this in the future. 
     // Calculate customized speed for splitting cells
     
-    var splitSpeed = 15* Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(mass,-0.005))/10);
+    var splitSpeed = 15* Math.ceil((-8484.93574 + 8354.33821 * Math.pow(mass,0.01))/10);
     //console.log("split:"+splitSpeed);
     //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 300);
     // Calculate new position
