@@ -74,7 +74,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                     c.borderLeft, 
                     c.borderRight,
                     c.borderTop,
-                    c.borderBottom,
+                    c.borderBottom
                 ));
             }
             break;

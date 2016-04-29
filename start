@@ -2,12 +2,5 @@
 PWD=$(dirname "$0")
 PORT=$1
 
-echo "[STATUS]"
-netstat -nltp |grep "\<$PORT\>"
-echo "[STOP]"
 kill -9 `pgrep -f "node tiaotiao"`
-netstat -nltp |grep "\<$PORT\>"
-echo "[START]"
 cd $PWD/../ && nohup node tiaotiao &
-sleep 1
-netstat -nltp |grep "\<$PORT\>"

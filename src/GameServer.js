@@ -169,12 +169,14 @@ GameServer.prototype.getNewPlayerID = function() {
     return this.lastPlayerId++;
 };
 
-GameServer.prototype.getRandomPosition = function() {
+GameServer.prototype.getRandomPosition = function(size) {
+    var L = this.config.borderLeft + size;
+    var R = this.config.borderRight - size;
+    var T = this.config.borderTop + size;
+    var B = this.config.borderBottom - size;
     return {
-        x: Math.floor(Math.random() * (this.config.borderRight - 
-                       this.config.borderLeft)) + this.config.borderLeft,
-        y: Math.floor(Math.random() * (this.config.borderBottom - 
-                    this.config.borderTop)) + this.config.borderTop
+        x: Math.floor(Math.random() * (R - L)) + L,
+        y: Math.floor(Math.random() * (B - T)) + T
     };
 };
 
@@ -197,7 +199,7 @@ GameServer.prototype.getRandomSpawn = function() {
         }
     }
     if (!pos) {
-        pos = this.getRandomPosition();
+        pos = this.getRandomPosition(50); // just simple
     }
     return pos;
 };
@@ -334,7 +336,7 @@ GameServer.prototype.updateFood = function() {
 
 GameServer.prototype.spawnFood = function() {
     var f = new Entity.Food(this.getNextNodeId(), null, 
-            this.getRandomPosition(), this.config.foodMass, this);
+            this.getRandomPosition(10), this.config.foodMass, this);
     f.setColor(this.getRandomColor());
 
     //console.log("spawnFood:"+f.nodeId+" x:"+f.position.x+" y:"+f.position.y)
@@ -362,9 +364,9 @@ GameServer.prototype.spawnPlayer = function(player) {
 
 GameServer.prototype.updateVirus = function() {
     if (this.nodesVirus.length < this.config.virusMinAmount) {
-        var pos = this.getRandomPosition();
-        var v = new Entity.Virus(this.getNextNodeId(), null, pos, 
-                this.config.virusStartMass, this);
+        var mass = this.config.virusStartMass;
+        var pos = this.getRandomPosition(this.getSizeFromMass(mass));
+        var v = new Entity.Virus(this.getNextNodeId(), null, pos, mass, this);
         this.addNode(v);
     }
 };

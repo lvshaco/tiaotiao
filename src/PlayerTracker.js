@@ -59,7 +59,7 @@ PlayerTracker.prototype.update = function() {
     // split cell
     if (this.socket.packetHandler.pressSplitCell) {
         this.gameServer.splitCells(this);
-        this.socket.packetHandler.pressSpace = false;
+        this.socket.packetHandler.pressSplitCell = false;
     }
 
     // eject mass
@@ -123,13 +123,12 @@ PlayerTracker.prototype.update = function() {
     // to client
     if (this.nodeDestroyQueue.length > 0 || 
         updateNodes.length > 0 ||
-        nonVisibleNodes.length > 0) 
+        nonVisibleNodes.length > 0) {
         this.socket.sendPacket(new Packet.UpdateNodes(
             this.nodeDestroyQueue,
             updateNodes,
             nonVisibleNodes
         ));
-        }
     }
 
     this.nodeDestroyQueue = [];
