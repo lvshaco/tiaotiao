@@ -30,23 +30,6 @@ EjectedMass.prototype.sendUpdate = function() {
 };
 
 EjectedMass.prototype.onRemove = function(gameServer) {
-    // Check for teaming and apply anti-teaming if required
-    if (!this.addedAntiTeam && this.owner.checkForWMult) {
-      try {
-            if (this.gameServer.gameMode.teamAmount > 0) {
-                // Apply teaming EXCEPT when exchanging mass to same team member
-                if (this.owner.team != this.killedBy.owner.team || this.owner == this.killedBy.owner) {
-                    this.owner.Wmult += 0.02;
-                    this.owner.checkForWMult = false;
-                };
-            } else {
-                // Always apply anti-teaming if there are no teams
-                this.owner.Wmult += 0.02;
-                this.owner.checkForWMult = false;
-            };
-        } catch(ex) { } // Dont do anything whatever the error is
-    }
-    // Remove from list of ejected mass
     var index = gameServer.nodesEjected.indexOf(this);
     if (index != -1) {
         gameServer.nodesEjected.splice(index, 1);
@@ -60,7 +43,6 @@ EjectedMass.prototype.onConsume = function(consumer, gameServer) {
 
 EjectedMass.prototype.onAutoMove = function(gameServer) {
     if (gameServer.nodesVirus.length < gameServer.config.virusMaxAmount) {
-        // Check for viruses
         var v = gameServer.getNearestVirus(this);
         if (v) { // Feeds the virus if it exists
             v.feed(this, gameServer);
@@ -73,5 +55,4 @@ EjectedMass.prototype.moveDone = function(gameServer) {
     // Always apply anti-teaming
     this.owner.actionMult += 0.02;
     this.addedAntiTeam = true;
-    this.owner.checkForWMult = false;
 };

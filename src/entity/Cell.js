@@ -11,7 +11,7 @@ function Cell(nodeId, owner, position, mass, gameServer) {
     } else {
         this.picture = Math.floor(Math.random()*65535);
     }
-    this.last_move_angle = 0;
+    this.lastMoveAngle = 0;
     this.position = position;
     this.mass = mass; // Starting mass of the cell
     this.cellType = -1; // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
@@ -64,30 +64,19 @@ Cell.prototype.getType = function() {
 };
 
 Cell.prototype.getSize = function() {
-    // Calculates radius based on cell mass
-    //return this.mass * 0.5
-    return Math.ceil((-8484.93574 + 8354.33821 * Math.pow(this.mass,0.01))/2);
-    //return Math.ceil(Math.sqrt(100 * this.mass));
+    return this.gameServer.getSizeFromMass(this.mass);
 };
 
 Cell.prototype.getSquareSize = function() {
-    // R * R
     return this.getSize() * this.getSize();
 };
 
 Cell.prototype.addMass = function(n) {
     this.mass += n;
-    //if (this.mass > this.gameServer.config.playerMaxMass && this.owner.cells.length < this.gameServer.config.playerMaxCells) {
-    //    var splitMass = this.mass / 2;
-    //    var randomAngle = Math.random() * 6.28 // Get random angle
-    //    this.gameServer.createPlayerCell(this.owner, this, randomAngle, splitMass);
-    //} else {
-    //    this.mass = Math.min(this.mass, this.gameServer.config.playerMaxMass);
-    //}
 };
 
 Cell.prototype.getSpeed = function() {
-    return Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(this.mass,-0.005))/10);
+    return this.gameServer.getSpeedFromMass(this.mass);
 };
 
 Cell.prototype.setAngle = function(radians) {
@@ -164,38 +153,6 @@ Cell.prototype.calcMovePhys = function(config) {
     var speedDecrease = this.moveEngineSpeed - this.moveEngineSpeed * this.moveDecay;
     this.moveEngineSpeed -= speedDecrease; // Decaying speed twice as slower
     this.moveEngineTicks -= 0.5; // Ticks passing twice as slower
-
-    // Ejected cell collision
-    //if (this.cellType == 3) {
-    //    for (var i = 0; i < this.gameServer.nodesEjected.length; i++) {
-    //        var check = this.gameServer.nodesEjected[i];
-
-    //        if (check.nodeId == this.nodeId) continue; // Don't check for yourself
-
-    //        var dist = this.getDist(this.position.x, this.position.y, check.position.x, check.position.y);
-    //        var allowDist = (this.getSize() + check.getSize()) * 0.95; // Allow cells to get in themselves a bit
-
-    //        if (dist < allowDist) {
-    //            // Two ejected cells collided
-    //            var deltaX = this.position.x - check.position.x;
-    //            var deltaY = this.position.y - check.position.y;
-    //            var angle = Math.atan2(deltaX, deltaY);
-
-    //            check.moveEngineTicks++;
-    //            if (this.gameServer.movingNodes.indexOf(check) == -1) this.gameServer.setAsMovingNode(check);
-
-    //            this.moveEngineTicks++;
-
-    //            // Make sure they don't become a living organism (wait, a multicellular organism simulator!)
-    //            var realAD = (this.getSize() + check.getSize()) * 1.1;
-
-    //            var move = (realAD - dist) / 2;
-
-    //            X += (Math.sin(angle) * move) >> 0;
-    //            Y += (Math.cos(angle) * move) >> 0;
-    //        }
-    //    }
-    //}
 
     // Border check - Bouncy physics
     var radius = 40;

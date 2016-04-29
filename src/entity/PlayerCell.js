@@ -1,4 +1,5 @@
 var Cell = require('./Cell');
+var Packet = require('../packet');
 
 function PlayerCell() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
@@ -36,18 +37,7 @@ PlayerCell.prototype.simpleCollide = function(check, d) {
 };
 
 PlayerCell.prototype.calcMergeTime = function(base) {
-    // The recombine mechanic has been completely revamped.
-    // As time passes on, recombineTicks gets larger, instead of getting smaller.
-    // When the owner has only 1 cell, ticks and shouldRecombine will be reset by gameserver.
-    var r = false;
-    if (base == 0 || this.owner.mergeOverride) {
-        // Instant recombine in config or merge command was triggered for this client
-        r = true;
-    } else {
-        var rec = Math.floor(base + ((0.02 * this.mass))); // base seconds + 0.02% of mass
-        if (this.recombineTicks > rec) r = true; // Can combine with other cells
-    }
-    this.shouldRecombine = r;
+    this.shouldRecombine = this.recombineTicks >= base;
 };
 
 // Movement
@@ -66,7 +56,7 @@ PlayerCell.prototype.calcMove = function(x2, y2, gameServer, moveCell) {
             return;
         }
 
-        this.last_move_angle = angle;
+        this.lastMoveAngle = angle;
         var dist = this.getDist(this.position.x, this.position.y, x2, y2);
         var speed = Math.min(this.getSpeed(), dist)/2; // Twice as slower
 
@@ -131,8 +121,6 @@ PlayerCell.prototype.collision = function(gameServer) {
         }
     }
 
-    gameServer.gameMode.onCellMove(x1, y1, this);
-
     if (collidedCells == 0) this.collisionRestoreTicks = 0; // Automate process of collision restoration as no cells are colliding
 
     // Check to ensure we're not passing the world border (shouldn't get closer than a quarter of the cell's diameter)
@@ -162,10 +150,13 @@ PlayerCell.prototype.onConsume = function(consumer, gameServer) {
 };
 
 PlayerCell.prototype.onAdd = function(gameServer) {
-    // Add to special player node list
+    this.setColor(this.owner.color);
+    this.owner.cells.push(this);
+
+    console.log('sendAddNode');
+    this.owner.socket.sendPacket(new Packet.AddNode(this));
+    
     gameServer.nodesPlayer.push(this);
-    // Gamemode actions
-    gameServer.gameMode.onCellAdd(this);
 };
 
 PlayerCell.prototype.onRemove = function(gameServer) {

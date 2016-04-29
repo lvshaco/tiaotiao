@@ -6,7 +6,7 @@ function Virus() {
     this.cellType = 2;
     this.spiked = 1;
     this.fed = 0;
-    this.isMotherCell = false; // Not to confuse bots
+    this.isMotherCell = false; 
 }
 
 module.exports = Virus;
@@ -20,8 +20,6 @@ Virus.prototype.feed = function(feeder, gameServer) {
     this.fed++; // Increase feed count
     gameServer.removeNode(feeder);
 
-    // Check if the virus is going to explode
-    //if (this.fed >= gameServer.config.virusFeedAmount) {
     if (this.mass >= 200) { 
         this.mass = gameServer.config.virusStartMass; // Reset mass
         this.fed = 0;
@@ -47,16 +45,15 @@ Virus.prototype.onConsume = function(consumer, gameServer) {
     if (splitMass < 1) 
         return;
 
-    var unit_angle = 6.28/numSplits;
-    var angle = consumer.last_move_angle;
+    var unitAngle = 6.28/numSplits;
+    var angle = consumer.lastMoveAngle;
     for (var k = 0; k < numSplits; k++) {
-        angle = angle + unit_angle;//Math.random() * 6.28; // Random directions
+        angle = angle + unitAngle;
         gameServer.createPlayerCell(client, consumer, angle, splitMass);
     }
 
     // Prevent consumer cell from merging with other cells
     consumer.calcMergeTime(gameServer.config.playerRecombineTime);
-    client.virusMult += 0.6; // Account for anti-teaming
 };
 
 Virus.prototype.onAdd = function(gameServer) {
