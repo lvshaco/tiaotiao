@@ -2,46 +2,38 @@ var Cell = require('./Cell');
 
 function Virus() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
-
     this.cellType = 2;
     this.spiked = 1;
-    this.fed = 0;
-    this.isMotherCell = false; 
 }
 
 module.exports = Virus;
 Virus.prototype = new Cell();
 
-Virus.prototype.calcMove = null; // Only for player controlled movement
+Virus.prototype.calcMove = null;
 
 Virus.prototype.feed = function(feeder, gameServer) {
-    if (this.moveEngineTicks == 0) this.setAngle(feeder.getAngle()); // Set direction if the virus explodes
+    if (this.moveEngineTicks == 0) 
+        this.setAngle(feeder.getAngle());
     this.mass += feeder.mass;
-    this.fed++; // Increase feed count
     gameServer.removeNode(feeder);
 
     if (this.mass >= 200) { 
-        this.mass = gameServer.config.virusStartMass; // Reset mass
-        this.fed = 0;
+        this.mass = gameServer.config.virusStartMass; 
         gameServer.shootVirus(this);
     }
 
 };
 
-// Main Functions
-
 Virus.prototype.onConsume = function(consumer, gameServer) {
     var client = consumer.owner;
-
-    // Cell consumes mass before any calculation
     consumer.addMass(this.mass);
 
-    var numSplits = gameServer.config.playerMaxCells - client.cells.length; // Get number of splits
+    var numSplits = gameServer.config.playerMaxCells - client.cells.length;
     numSplits = Math.min(numSplits, 9); // max split is 9
     if (numSplits <= 0)
         return;
 
-    var splitMass = consumer.mass / (numSplits + 1); // Maximum size of new splits
+    var splitMass = consumer.mass / (numSplits + 1); 
     if (splitMass < 1) 
         return;
 
@@ -51,8 +43,7 @@ Virus.prototype.onConsume = function(consumer, gameServer) {
         angle = angle + unitAngle;
         gameServer.createPlayerCell(client, consumer, angle, splitMass);
     }
-
-    // Prevent consumer cell from merging with other cells
+    
     consumer.calcMergeTime(gameServer.config.playerRecombineTime);
 };
 
@@ -64,7 +55,5 @@ Virus.prototype.onRemove = function(gameServer) {
     var index = gameServer.nodesVirus.indexOf(this);
     if (index != -1) {
         gameServer.nodesVirus.splice(index, 1);
-    } else {
-        console.log("[Warning] Tried to remove a non existing virus!");
-    }
+    } 
 };

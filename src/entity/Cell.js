@@ -1,6 +1,6 @@
 function Cell(nodeId, owner, position, mass, gameServer) {
     this.nodeId = nodeId;
-    this.owner = owner; // playerTracker that owns this cell
+    this.owner = owner; 
     this.color = {
         r: 0,
         g: 255,
@@ -13,25 +13,20 @@ function Cell(nodeId, owner, position, mass, gameServer) {
     }
     this.lastMoveAngle = 0;
     this.position = position;
-    this.mass = mass; // Starting mass of the cell
+    this.mass = mass;
     this.cellType = -1; // 0 = Player Cell, 1 = Food, 2 = Virus, 3 = Ejected Mass
-    this.spiked = 0; // If 1, then this cell has spikes around it
+    this.spiked = 0; // 1 = has spike
 
-    this.killedBy; // Cell that ate this cell
+    this.killedBy; 
     this.gameServer = gameServer;
 
-    this.moveEngineTicks = 0; // Amount of times to loop the movement function
-    this.moveEngineSpeed = 0;
+    this.moveEngineSpeed = 0; // move speed
+    this.moveEngineTicks = 0; // move tick 
     this.moveDecay = 0.85;
-    this.angle = 0; // Angle of movement
-    this.collisionRestoreTicks = 0; // Ticks left before cell starts checking for collision with client's cells
-    // NOTE: collisionRestoreTicks variable is actually ONLY used in player cells.
-    // NOTE: DO NOT REMOVE IT IN ANY WAY, IT WILL BREAK CALCMOVEPHYS!
+    this.angle = 0; // move angle
 }
 
 module.exports = Cell;
-
-// Fields not defined by the constructor are considered private and need a getter/setter to access from a different class
 
 Cell.prototype.getName = function() {
     if (this.owner) {
@@ -101,45 +96,29 @@ Cell.prototype.setKiller = function(cell) {
     this.killedBy = cell;
 };
 
-// Functions
-
 Cell.prototype.collisionCheck = function(bottomY, topY, rightX, leftX) {
-    // Collision checking
     if (this.position.y > bottomY) {
         return false;
     }
-
     if (this.position.y < topY) {
         return false;
     }
-
     if (this.position.x > rightX) {
         return false;
     }
-
     if (this.position.x < leftX) {
         return false;
     }
-
     return true;
 };
 
-// This collision checking function is based on CIRCLE shape
 Cell.prototype.collisionCheck2 = function(objectSquareSize, objectPosition) {
-    // IF (O1O2 + r <= R) THEN collided. (O1O2: distance b/w 2 centers of cells)
-    // (O1O2 + r)^2 <= R^2
-    // approximately, remove 2*O1O2*r because it requires sqrt(): O1O2^2 + r^2 <= R^2
-
     var dx = this.position.x - objectPosition.x;
     var dy = this.position.y - objectPosition.y;
-
-//console.log("in range======:"+this.position.x+ " "+this.position.y+ " "+
-//    objectPosition.x+" "+objectPosition.y);
     return (dx * dx + dy * dy + this.getSquareSize() <= objectSquareSize);
 };
 
 Cell.prototype.visibleCheck = function(box, centerPos) {
-    // Checks if this cell is visible to the player
     return this.collisionCheck(box.bottomY, box.topY, box.rightX, box.leftX);
 };
 
@@ -154,62 +133,46 @@ Cell.prototype.calcMovePhys = function(config) {
     this.moveEngineSpeed -= speedDecrease; // Decaying speed twice as slower
     this.moveEngineTicks -= 0.5; // Ticks passing twice as slower
 
-    // Border check - Bouncy physics
-    var radius = 40;
+    // border check
+    var radius = this.getSize();
     if ((this.position.x - radius) < config.borderLeft) {
-        // Flip angle horizontally - Left side
         this.angle = 6.28 - this.angle;
         X = config.borderLeft + radius;
     }
     if ((this.position.x + radius) > config.borderRight) {
-        // Flip angle horizontally - Right side
         this.angle = 6.28 - this.angle;
         X = config.borderRight - radius;
     }
     if ((this.position.y - radius) < config.borderTop) {
-        // Flip angle vertically - Top side
         this.angle = (this.angle <= 3.14) ? 3.14 - this.angle : 9.42 - this.angle;
         Y = config.borderTop + radius;
     }
     if ((this.position.y + radius) > config.borderBottom) {
-        // Flip angle vertically - Bottom side
         this.angle = (this.angle <= 3.14) ? 3.14 - this.angle : 9.42 - this.angle;
         Y = config.borderBottom - radius;
     }
-
-    // Set position
     this.position.x = X >> 0;
     this.position.y = Y >> 0;
 };
 
-// Override these
-
 Cell.prototype.sendUpdate = function() {
-    // Whether or not to include this cell in the update packet
     return true;
 };
 
 Cell.prototype.onConsume = function(consumer, gameServer) {
-    // Called when the cell is consumed
 };
 
 Cell.prototype.onAdd = function(gameServer) {
-    // Called when this cell is added to the world
 };
 
 Cell.prototype.onRemove = function(gameServer) {
-    // Called when this cell is removed
 };
 
 Cell.prototype.onAutoMove = function(gameServer) {
-    // Called on each auto move engine tick
 };
 
 Cell.prototype.moveDone = function(gameServer) {
-    // Called when this cell finished moving with the auto move engine
 };
-
-// Lib
 
 Cell.prototype.abs = function(x) {
     return x < 0 ? -x : x;

@@ -14,25 +14,20 @@ function GameServer() {
     this.lastPlayerId = 1;
     this.clients = [];
     this.nodes = [];
-    this.nodesVirus = []; // Virus nodes
-    this.nodesEjected = []; // Ejected mass nodes
-    this.nodesPlayer = []; // Nodes controlled by players
+    this.nodesVirus = []; 
+    this.nodesEjected = [];
+    this.nodesPlayer = [];
 
     this.currentFood = 0;
-    this.movingNodes = []; // For move engine
-    this.leaderboard = [];
-    this.lb_packet = new ArrayBuffer(0); // Leaderboard packet
+    this.movingNodes = [];
 
     this.log = new Logger();
 
-    // Main loop tick
     this.time = +new Date;
-    this.startTime = this.time;
-    this.tick = 0; // 1 ms, 25 ms - collision update, next time all update
-    this.fullTick = 0; // 2 = all update
+    this.tick = 0;
+    this.fullTick = 0;
     this.tickSpawn = 0;
 
-    // Config
     this.config = {
         // server
         serverMaxConnections: 64, 
@@ -66,28 +61,16 @@ function GameServer() {
         ejectSpeed: 100, 
 
         // player
-        playerStartMass: 10, // Starting mass of the player cell.
-        playerMaxMass: 22500, // Maximum mass a player can have
-        playerMinMassEject: 32, // Mass required to eject a cell
-        playerMinMassSplit: 36, // Mass required to split
-        playerMaxCells: 16, // Max cells the player is allowed to have
+        playerStartMass: 10,
+        playerMaxMass: 22500,
+        playerMinMassEject: 32,
+        playerMinMassSplit: 36,
+        playerMaxCells: 16,
 
-        // recombine
         playerRecombineTime: 8, // second
-
-        playerMassAbsorbed: 1.0, // Fraction of player cell's mass gained upon eating
-        playerMassDecayRate: .006, // Amount of mass lost per second
-        playerMinMassDecay: 11, // Minimum mass for decay to occur
-        playerMaxNickLength: 15, // Maximum nick length
-        playerSpeed: 10, // Player base speed, base on 50ms ticks
-        playerSmoothSplit: 0, // Whether smooth splitting is used
-        playerDisconnectTime: 0, // The amount of seconds it takes for a player cell to be removed after disconnection (If set to -1, cells are never removed)
-        tourneyMaxPlayers: 12, // Maximum amount of participants for tournament style game modes
-        tourneyPrepTime: 10, // Amount of ticks to wait after all players are ready (1 tick = 1000 ms)
-        tourneyEndTime: 30, // Amount of ticks to wait after a player wins (1 tick = 1000 ms)
-        tourneyTimeLimit: 20, // Time limit of the game, in minutes.
-        tourneyAutoFill: 0, // If set to a value higher than 0, the tournament match will automatically fill up with bots after this amount of seconds
-        tourneyAutoFillPlayers: 1, // The timer for filling the server with bots will not count down unless there is this amount of real players
+        playerMassDecayRate: .006, // per second
+        playerMinMassDecay: 11, 
+        playerMaxNickLength: 15,
     };
     this.loadConfig();
 }
@@ -95,111 +78,67 @@ function GameServer() {
 module.exports = GameServer;
 
 GameServer.prototype.start = function() {
-    // Logging
     this.log.setup(this);
 
-    // Start the server
     this.socketServer = new WebSocket.Server({
         port: this.config.serverPort,
         perMessageDeflate: false
     }, function() {
         this.startingFood();
 
-        // Start Main Loop
         setInterval(this.mainLoop.bind(this), 1);
 
-        console.log("[Game] Listening on port " + this.config.serverPort);
+        console.log("Listening on port " + this.config.serverPort);
     
     }.bind(this));
 
     this.socketServer.on('connection', connectionEstablished.bind(this));
 
-    // Properly handle errors because some people are too lazy to read the readme
     this.socketServer.on('error', function err(e) {
         switch (e.code) {
             case "EADDRINUSE":
-                console.log("[Error] Server could not bind to port! Please close out of Skype or change 'serverPort' in gameserver.ini to a different number.");
+                console.log("[Error] Bind address is in use");
                 break;
             case "EACCES":
-                console.log("[Error] Please make sure you are running Ogar with root privileges.");
+                console.log("[Error] The port need root privileges.");
                 break;
             default:
                 console.log("[Error] Unhandled error code: " + e.code);
                 break;
         }
-        process.exit(1); // Exits the program
+        process.exit(1); 
     });
 
     function connectionEstablished(ws) {
-        console.log("new connection");
-        if (this.clients.length >= this.config.serverMaxConnections) { // Server full
-            console.log("connection is full:"+this.clients.length);
+        console.log("New connection: "+ws.upgradeReq.headers.origin);
+        if (this.clients.length >= this.config.serverMaxConnections) { 
+            console.log("[Warn] Connection is full:" + this.clients.length);
             ws.close();
             return;
         }
-
-        // ----- Client authenticity check code -----
-        // !!!!! WARNING !!!!!
-        // THE BELOW SECTION OF CODE CHECKS TO ENSURE THAT CONNECTIONS ARE COMING
-        // FROM THE OFFICIAL AGAR.IO CLIENT. IF YOU REMOVE OR MODIFY THE BELOW
-        // SECTION OF CODE TO ALLOW CONNECTIONS FROM A CLIENT ON A DIFFERENT DOMAIN,
-        // YOU MAY BE COMMITTING COPYRIGHT INFRINGEMENT AND LEGAL ACTION MAY BE TAKEN
-        // AGAINST YOU. THIS SECTION OF CODE WAS ADDED ON JULY 9, 2015 AT THE REQUEST
-        // OF THE AGAR.IO DEVELOPERS.
-        var origin = ws.upgradeReq.headers.origin;
-        console.log("origin:"+ origin);
-        if (origin != 'http://agar.io' &&
-            origin != 'https://agar.io' &&
-            origin != 'http://localhost' &&
-            origin != 'https://localhost' &&
-            origin != 'http://127.0.0.1' &&
-            origin != 'https://127.0.0.1') {
-            //console.log("origin error:close");
-            //ws.close();
-            //return;
-        }
-        // -----/Client authenticity check code -----
-
         function close(error) {
-            console.log("close by error:"+ error);
-            // Log disconnections
+            console.log("Close by error:"+ error);
             this.server.log.onDisconnect(this.socket.remoteAddress);
 
             var client = this.socket.playerTracker;
             var len = this.socket.playerTracker.cells.length;
             for (var i = 0; i < len; i++) {
                 var cell = this.socket.playerTracker.cells[i];
-
                 if (!cell) {
                     continue;
                 }
-
                 cell.calcMove = function() {
                     return;
-                }; // Clear function so that the cell cant move
-                //this.server.removeNode(cell);
+                }; 
             }
-
-            client.disconnect = this.server.config.playerDisconnectTime * 20;
+            client.disconnect = 0;
             this.socket.sendPacket = function() {
                 return;
-            }; // Clear function so no packets are sent
-
-            //var len = this.server.clients.length;
-            ////console.log("close client len:"+ len);
-            //for (var i = 0; i < len; i++) {
-            //    var c = this.server.clients[i].playerTracker;
-            //    if (c === client) {
-            //        //console.log("remove player");
-            //        this.server.clients.splice(i, 1);
-            //        break;
-            //    }
-            //}
+            };
         }
-
         ws.remoteAddress = ws._socket.remoteAddress;
         ws.remotePort = ws._socket.remotePort;
-        this.log.onConnect(ws.remoteAddress); // Log connections
+        this.log.onConnect(ws.remoteAddress); 
 
         ws.playerTracker = new PlayerTracker(this, ws);
         ws.packetHandler = new PacketHandler(this, ws);
@@ -533,10 +472,6 @@ GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     var newCell = new Entity.PlayerCell(this.getNextNodeId(), client, newPos, mass, this);
     newCell.setAngle(angle);
     newCell.setMoveEngineData(splitSpeed, 6, 0.70);
-    if (this.config.playerSmoothSplit == 1) {
-        newCell.collisionRestoreTicks = 12;
-        parent.collisionRestoreTicks = 12;
-    }
     newCell.calcMergeTime(this.config.playerRecombineTime);
     parent.mass -= mass; 
 
@@ -617,9 +552,6 @@ GameServer.prototype.getCellsInRange = function(cell) {
             continue;
         }
         if (cell.nodeId == check.nodeId) {
-            continue;
-        }
-        if ((cell.owner == check.owner) && (cell.collisionRestoreTicks != 0)) {
             continue;
         }
         if (!check.collisionCheck2(squareR, cell.position)) {
@@ -711,12 +643,8 @@ GameServer.prototype.updateCells = function() {
             cell.recombineTicks = 0;
             cell.shouldRecombine = false;
         }
-        // Collision
-        if (cell.collisionRestoreTicks > 0) {
-            cell.collisionRestoreTicks--;
-        }
 
-        // Mass decay
+        // mass decay
         if (cell.mass >= this.config.playerMinMassDecay) {
             var massDecay = 1 - (this.config.playerMassDecayRate * 0.05);
             cell.mass *= massDecay;

@@ -15,10 +15,9 @@ Food.prototype.getSize = function() {
 };
 
 
-Food.prototype.calcMove = null; // Food has no need to move
+Food.prototype.calcMove = null; 
 
 Food.prototype.sendUpdate = function() {
-    // Whether or not to include this cell in the update packet
     if (this.moveEngineTicks == 0) {
         return false;
     }
