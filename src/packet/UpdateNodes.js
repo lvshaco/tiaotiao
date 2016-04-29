@@ -20,7 +20,7 @@ UpdateNodes.prototype.build = function() {
         }
 
         //nodesLength = nodesLength + 20 + (node.getName().length * 2);
-        nodesLength = nodesLength + 21 + (node.getName().length); 
+        nodesLength = nodesLength + 23 + (node.getName().length); 
     }
 
     var buflen = 1 +
@@ -92,7 +92,8 @@ UpdateNodes.prototype.build = function() {
         view.setUint8(offset + 17, node.color.g, true); // Color (G)
         view.setUint8(offset + 18, node.color.b, true); // Color (B)
         view.setUint8(offset + 19, node.spiked, true); // Flags
-        offset += 20;
+        view.setUint16(offset + 20, node.mass, true); // Mass 
+        offset += 22;
 
         //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
         var name = node.getName();

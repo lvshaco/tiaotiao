@@ -1,10 +1,8 @@
-// Library imports
 var WebSocket = require('ws');
 var http = require('http');
 var fs = require("fs");
 var ini = require('./modules/ini.js');
 
-// Project imports
 var Packet = require('./packet');
 var PlayerTracker = require('./PlayerTracker');
 var PacketHandler = require('./PacketHandler');
@@ -13,9 +11,7 @@ var Gamemode = require('./gamemodes');
 var BotLoader = require('./ai/BotLoader');
 var Logger = require('./modules/log');
 
-// GameServer implementation
 function GameServer() {
-    // Startup
     this.run = true;
     this.lastNodeId = 1;
     this.lastPlayerId = 1;
@@ -84,7 +80,7 @@ function GameServer() {
         playerMinMassEject: 32, // Mass required to eject a cell
         playerMinMassSplit: 36, // Mass required to split
         playerMaxCells: 16, // Max cells the player is allowed to have
-        playerRecombineTime: 10, // Base amount of seconds before a cell is allowed to recombine
+        playerRecombineTime: 8, // Base amount of seconds before a cell is allowed to recombine
         playerMassAbsorbed: 1.0, // Fraction of player cell's mass gained upon eating
         playerMassDecayRate: .006, // Amount of mass lost per second
         playerMinMassDecay: 11, // Minimum mass for decay to occur
@@ -681,7 +677,7 @@ GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     // Returns boolean whether a cell has been split or not. You can use this in the future. 
     // Calculate customized speed for splitting cells
     
-    var splitSpeed = 15* Math.ceil((-8484.93574 + 8354.33821 * Math.pow(mass,0.01))/10);
+    var splitSpeed = 15* Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(mass,-0.005))/10);
     //console.log("split:"+splitSpeed);
     //var splitSpeed = Math.min(this.config.playerSpeed * Math.pow(mass, -0.085) * 50 / 40 * 3, 300);
     // Calculate new position
@@ -742,7 +738,7 @@ GameServer.prototype.ejectMass = function(client) {
         // Remove mass from parent cell
         cell.mass -= this.config.ejectMass; //this.config.ejectMassLoss;
         // Randomize angle
-        angle += (Math.random() * 0.6) - 0.3;
+        //angle += (Math.random() * 0.6) - 0.3;
  
         // Create cell
         var ejected = new Entity.EjectedMass(this.getNextNodeId(), client, startPos, this.config.ejectMass, this);
@@ -813,7 +809,7 @@ GameServer.prototype.getCellsInRange = function(cell) {
                 // If one of cells can't merge
                 if (!cell.shouldRecombine || !check.shouldRecombine) {
                     // Check if merge command was triggered on this client
-                    if (!cell.owner.mergeOverride) continue;
+                    //if (!cell.owner.mergeOverride) continue;
                 }
             } else {
                 multiplier = 1.25;
@@ -850,6 +846,18 @@ GameServer.prototype.getCellsInRange = function(cell) {
 
             // Something is about to eat this cell; no need to check for other collisions with it
             check.inRange = true;
+            if (check.owner == cell.owner) {
+                var cells = cell.owner.cells
+                if (cells.length > 2) {
+                    for (var i = 0; i < cells.length; i++) {
+                        var c = cells[i];
+                        if (c != check) {
+                            c.shouldRecombine = false;
+                            c.recombineTicks = 0;
+                        }
+                    }
+                }
+            }
         } 
     }
     return list;

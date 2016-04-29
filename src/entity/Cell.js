@@ -66,7 +66,8 @@ Cell.prototype.getType = function() {
 Cell.prototype.getSize = function() {
     // Calculates radius based on cell mass
     //return this.mass * 0.5
-    return Math.ceil(Math.sqrt(100 * this.mass));
+    return Math.ceil((-8484.93574 + 8354.33821 * Math.pow(this.mass,0.01))/2);
+    //return Math.ceil(Math.sqrt(100 * this.mass));
 };
 
 Cell.prototype.getSquareSize = function() {
@@ -86,8 +87,7 @@ Cell.prototype.addMass = function(n) {
 };
 
 Cell.prototype.getSpeed = function() {
-    return Math.ceil((-8484.93574 + 8354.33821 * Math.pow(this.mass,0.01))/10);
-    //return Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(this.mass,-0.005))/10);
+    return Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(this.mass,-0.005))/10);
 };
 
 Cell.prototype.setAngle = function(radians) {

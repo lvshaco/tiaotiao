@@ -15,6 +15,15 @@ function Food() {
 module.exports = Food;
 Food.prototype = new Cell();
 
+Food.prototype.getSize = function() {
+    // Calculates radius based on cell mass
+    //return this.mass * 0.5
+    return 10;
+    //return Math.ceil((-8484.93574 + 8354.33821 * Math.pow(this.mass,0.01))/2);
+    //return Math.ceil(Math.sqrt(100 * this.mass));
+};
+
+
 Food.prototype.calcMove = null; // Food has no need to move
 
 // Main Functions
