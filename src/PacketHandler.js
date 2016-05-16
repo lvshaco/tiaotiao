@@ -43,6 +43,9 @@ PacketHandler.prototype.handleMessage = function(message) {
                 var client = this.socket.playerTracker;
                 client.mouse.x = view.getInt32(1, true);
                 client.mouse.y = view.getInt32(5, true);
+
+                client.movedir.x = view.getInt32(9, true)/100;
+                client.movedir.y = view.getInt32(13, true)/100;
                 //console.log(" mouse:"+client.mouse.x+" "+client.mouse.y);
             }
             break;

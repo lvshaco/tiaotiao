@@ -24,6 +24,27 @@ PlayerCell.prototype.visibleCheck = function(box, centerPos) {
     }
 };
 
+PlayerCell.prototype.comTickTime = function() {
+    var x1 = this.position.x;
+    var y1 = this.position.y;
+    var r = this.getSize();
+    for (var i = 0; i < this.owner.cells.length; i++) {
+        var cell = this.owner.cells[i];
+        if (this.nodeId == cell.nodeId) {
+            continue;
+        }
+
+        //if ((!cell.shouldRecombine) || (!this.shouldRecombine)) {
+            var collisionDist = cell.getSize() + r; 
+            var dist = this.getDist(x1, y1, cell.position.x, cell.position.y);
+            if (dist <= collisionDist) {
+                this.recombineTicks += 0.05;
+                break;
+            }
+       // }
+    }
+};
+
 PlayerCell.prototype.calcMergeTime = function(base) {
     this.shouldRecombine = this.recombineTicks >= base;
 };
@@ -40,14 +61,16 @@ PlayerCell.prototype.calcMove = function(x2, y2, gameServer, moveCell) {
 
         this.lastMoveAngle = angle;
         var dist = this.getDist(this.position.x, this.position.y, x2, y2);
-        var speed = Math.min(this.getSpeed(), dist)/2;
-
+        var speed = Math.min(this.getSpeed(), dist)*0.7;
+        //var speed = Math.min(this.getSpeed(), dist);
         // Move cell
         this.position.x += Math.sin(angle) * speed;
         this.position.y += Math.cos(angle) * speed;
     }
-
-    this.collision(gameServer);
+    //if(this.moveEngineSpeed <= 0)
+    //{
+        //this.collision(gameServer);
+    //}
 };
 
 PlayerCell.prototype.collision = function(gameServer) {
@@ -64,7 +87,7 @@ PlayerCell.prototype.collision = function(gameServer) {
         }
         if ((!cell.shouldRecombine) || (!this.shouldRecombine)) {
             var collisionDist = cell.getSize() + r; 
-            dist = this.getDist(x1, y1, cell.position.x, cell.position.y);
+            var dist = this.getDist(x1, y1, cell.position.x, cell.position.y);
             if (dist < collisionDist) { 
                 var c1Speed = this.getSpeed();
                 var c2Speed = cell.getSpeed();

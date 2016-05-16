@@ -17,6 +17,10 @@ function PlayerTracker(gameServer, socket) {
         x: 0,
         y: 0
     };
+    this.movedir = {
+        x: 0,
+        y: 0
+    };
     this.tickViewBox = 0;
 
     this.sightRangeX = 0;

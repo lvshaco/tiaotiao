@@ -45,6 +45,7 @@ Virus.prototype.onConsume = function(consumer, gameServer) {
     }
     
     consumer.calcMergeTime(gameServer.config.playerRecombineTime);
+    consumer.setMoveEngineData(0, 4, 0.70);
 };
 
 Virus.prototype.onAdd = function(gameServer) {

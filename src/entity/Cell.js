@@ -83,7 +83,7 @@ Cell.prototype.getAngle = function() {
 };
 
 Cell.prototype.setMoveEngineData = function(speed, ticks, decay) {
-    this.moveEngineSpeed = speed;
+    this.moveEngineSpeed = speed;//ticks;
     this.moveEngineTicks = ticks;
     this.moveDecay = isNaN(decay) ? 0.75 : decay;
 };
@@ -124,14 +124,23 @@ Cell.prototype.visibleCheck = function(box, centerPos) {
 
 Cell.prototype.calcMovePhys = function(config) {
     // Move, twice as slower
-    var X = this.position.x + ((this.moveEngineSpeed / 2) * Math.sin(this.angle));
-    var Y = this.position.y + ((this.moveEngineSpeed / 2) * Math.cos(this.angle));
+    //var X = this.position.x + ((this.moveEngineSpeed / 2) * Math.sin(this.angle));
+    //var Y = this.position.y + ((this.moveEngineSpeed / 2) * Math.cos(this.angle));
+
+    var X = this.position.x + (this.moveEngineSpeed * Math.sin(this.angle));
+    var Y = this.position.y + (this.moveEngineSpeed * Math.cos(this.angle));
 
     // Movement engine
     if (this.moveEngineSpeed <= this.moveDecay * 3) this.moveEngineSpeed = 0;
     var speedDecrease = this.moveEngineSpeed - this.moveEngineSpeed * this.moveDecay;
+    //var speedDecrease = this.moveEngineSpeed / this.moveEngineTicks;
     this.moveEngineSpeed -= speedDecrease; // Decaying speed twice as slower
-    this.moveEngineTicks -= 0.5; // Ticks passing twice as slower
+    //this.moveEngineTicks -= 0.5; // Ticks passing twice as slower
+    this.moveEngineTicks -= 1;
+    if (this.moveEngineTicks <= 0) 
+    {
+        this.moveEngineSpeed = 0;
+    }
 
     // border check
     var radius = this.getSize();

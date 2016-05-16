@@ -68,7 +68,7 @@ function GameServer() {
         playerMaxCells: 16,
 
         playerRecombineTime: 8, // second
-        playerMassDecayRate: .006, // per second
+        playerMassDecayRate: .002, // per second
         playerMinMassDecay: 11, 
         playerMaxNickLength: 15,
     };
@@ -227,7 +227,7 @@ GameServer.prototype.getRandomColor = function() {
 };
 
 GameServer.prototype.getSizeFromMass = function(mass) {
-    return Math.ceil((-8484.93574 + 8354.33821 * Math.pow(mass,0.01))/2);
+    return Math.ceil((2.64965 * Math.pow(mass,0.7) + 50.72030)/2);
 };
 
 GameServer.prototype.getSpeedFromMass = function(mass) {
@@ -438,9 +438,13 @@ GameServer.prototype.updateMoveEngine = function(moveCells) {
         if (i >= this.nodesPlayer.length) {
             continue;
         }
-
-        check.onAutoMove(this);
-        check.calcMovePhys(this.config);
+        if (check.moveEngineTicks > 0)
+        {
+            check.onAutoMove(this);
+            check.calcMovePhys(this.config);
+        }else{
+            check.collision(this);
+        }
     }
 };
 
@@ -454,9 +458,10 @@ GameServer.prototype.splitCells = function(client) {
         var cell = client.cells[i];
         if (client.cells.length < this.config.playerMaxCells &&
             cell.mass >= this.config.playerMinMassSplit) {
-            var deltaY = client.mouse.y - cell.position.y;
-            var deltaX = client.mouse.x - cell.position.x;
-            var angle = Math.atan2(deltaX, deltaY);
+            //var deltaY = client.mouse.y - cell.position.y;
+            //var deltaX = client.mouse.x - cell.position.x;
+            //var angle = Math.atan2(deltaX, deltaY);
+            var angle = Math.atan2(client.movedir.x, client.movedir.y);
             if (angle == 0) angle = cell.lastMoveAngle;
             this.createPlayerCell(client, cell, angle, cell.mass / 2);
         }
@@ -465,7 +470,15 @@ GameServer.prototype.splitCells = function(client) {
 
 GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
     // todo just test formula
-    var splitSpeed = 15 * this.getSpeedFromMass(mass);
+    //var splitSpeed = 15 * this.getSpeedFromMass(mass);
+    var splitSpeed = 2 * this.getSizeFromMass(mass)+500;
+    var startSpeed = 0;
+    var xisum = 0;
+
+    for (var i = 0; i < 4; i++) {
+        xisum += Math.pow(0.9,i);
+    };
+    startSpeed = splitSpeed/xisum;
     var newPos = {
         x: parent.position.x,
         y: parent.position.y
@@ -473,10 +486,10 @@ GameServer.prototype.createPlayerCell = function(client, parent, angle, mass) {
 
     var newCell = new Entity.PlayerCell(this.getNextNodeId(), client, newPos, mass, this);
     newCell.setAngle(angle);
-    newCell.setMoveEngineData(splitSpeed, 6, 0.70);
+    newCell.setMoveEngineData(startSpeed, 4, 0.9);
     newCell.calcMergeTime(this.config.playerRecombineTime);
     parent.mass -= mass; 
-
+    parent.setMoveEngineData(0, 4, 0.9);
     this.addNode(newCell);
     return true;
 };
@@ -505,18 +518,33 @@ GameServer.prototype.ejectMass = function(client) {
         var deltaX = client.mouse.x - cell.position.x;
         var angle = Math.atan2(deltaX, deltaY);
        
-        var size = cell.getSize() + 0.5;
-        var startPos = {
-            x: cell.position.x + ((size + this.config.ejectMass) * Math.sin(angle)),
-            y: cell.position.y + ((size + this.config.ejectMass) * Math.cos(angle))
-        };
+        //var size = cell.getSize();
+        //var startPos = {
+            //x: cell.position.x + ((size + this.config.ejectMass) * Math.sin(angle)),
+            //y: cell.position.y + ((size + this.config.ejectMass) * Math.cos(angle))
+        //};
+
 
         cell.mass -= this.config.ejectMass;
- 
+
+        var size = this.getSizeFromMass(cell.mass);
+        var startPos = {
+            x: cell.position.x + (size * Math.sin(angle)),
+            y: cell.position.y + (size * Math.cos(angle))
+        };
+        
+        var xisum = 0;
+
+        for (var j = 0; j < 8; j++) {
+            xisum += Math.pow(0.85,j);
+        };
+         var startSpeed = 300/xisum;
+
         var ejected = new Entity.EjectedMass(this.getNextNodeId(), 
                 client, startPos, this.config.ejectMass, this);
         ejected.setAngle(angle);
-        ejected.setMoveEngineData(this.config.ejectSpeed, 20, 0.85);
+        //ejected.setMoveEngineData(this.config.ejectSpeed, 20, 0.85);
+        ejected.setMoveEngineData(startSpeed, 8, 0.85);
         ejected.setColor(cell.getColor());
 
         this.nodesEjected.push(ejected);
@@ -531,10 +559,18 @@ GameServer.prototype.shootVirus = function(parent) {
         y: parent.position.y,
     };
 
+    var startSpeed = 0;
+    var xisum = 0;
+       
+    for (var i = 0; i < 20; i++) {
+        xisum += Math.pow(0.85,i);
+    };
+    startSpeed = 250/xisum;
+
     var newVirus = new Entity.Virus(this.getNextNodeId(), null, parentPos, 
             this.config.virusStartMass, this);
     newVirus.setAngle(parent.getAngle());
-    newVirus.setMoveEngineData(135, 20, 0.85);
+    newVirus.setMoveEngineData(startSpeed, 20, 0.85);
 
     this.addNode(newVirus);
     this.setAsMovingNode(newVirus);
@@ -583,7 +619,7 @@ GameServer.prototype.getCellsInRange = function(cell) {
         if (check.getType() == 1)
             eatingRange = cell.getSize()-check.getSize()
         else 
-            eatingRange = cell.getSize()-(check.getSize()*0.8)
+            eatingRange = cell.getSize()-(check.getSize()*0.7)
         if (dist <= eatingRange) {
             list.push(check);
             check.inRange = true;
@@ -639,7 +675,8 @@ GameServer.prototype.updateCells = function() {
 
         // recombine
         if (cell.owner.cells.length > 1) {
-            cell.recombineTicks += 0.05;
+            //cell.recombineTicks += 0.05;
+            cell.comTickTime();
             cell.calcMergeTime(this.config.playerRecombineTime);
         } else if (cell.owner.cells.length == 1 && cell.recombineTicks > 0) {
             cell.recombineTicks = 0;
