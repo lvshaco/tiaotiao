@@ -4,6 +4,7 @@ var GameServer = require('./GameServer');
 function PlayerTracker(gameServer, socket) {
     this.pID = gameServer.getNewPlayerID();
     this.disconnect = -1;
+    this.roleid = 0;
     this.name = "";
     this.picture = 0;
     this.gameServer = gameServer;

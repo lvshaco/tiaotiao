@@ -2,18 +2,20 @@
 var WebSocket = require('ws');
 
 function setup(){
-//var wsServer = 'ws://127.0.0.1:448';
-var wsServer = 'ws://60.174.233.70:448';
+var wsServer = 'ws://127.0.0.1:1448';
+//var wsServer = 'ws://60.174.233.70:1448';
 var ws = new WebSocket(wsServer);
 //console.log(showProperties(ws));
 ws.on("open", function (e) {
 console.log("Connected to WebSocket server.");
 
-var msg = new Buffer(7);
+var msg = new Buffer(15);
 msg.writeUInt8(255, 0);
 msg.writeUInt32LE(0, 1);
 msg.writeUInt8(0, 5);
-msg.writeUInt8(0, 6);
+msg.writeUInt32LE(1, 6);
+msg.writeUInt32LE(0, 10);
+msg.writeUInt8(0, 14);
 console.log(showProperties(ws));
 ws.send(msg);
 console.log("EnterBoard...")

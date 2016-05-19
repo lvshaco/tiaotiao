@@ -3,6 +3,7 @@ var http = require('http');
 var fs = require("fs");
 var ini = require('./modules/ini.js');
 
+var HallHandler = require('./HallHandler');
 var PlayerTracker = require('./PlayerTracker');
 var PacketHandler = require('./PacketHandler');
 var Entity = require('./entity');
@@ -12,6 +13,7 @@ function GameServer() {
     this.run = true;
     this.lastNodeId = 1;
     this.lastPlayerId = 1;
+    this.loginPlayers = [];
     this.clients = [];
     this.nodes = [];
     this.nodesVirus = []; 
@@ -30,6 +32,7 @@ function GameServer() {
 
     this.config = {
         // server
+        serverId: 1,
         serverMaxConnections: 64, 
         serverPort: 1448,
         serverLogLevel: 1,
@@ -80,6 +83,32 @@ module.exports = GameServer;
 GameServer.prototype.start = function() {
     this.log.setup(this);
 
+    var hallHost = "127.0.0.1:19000";//this.config.hallHost;
+    var serverId = this.config.serverId;//serverId;
+    var serverPort = this.config.serverPort;
+    console.log("Hall connect ... "+hallHost)
+    var ws = new WebSocket('ws://'+hallHost);
+    this.nodeServer = ws;
+    ws.onopen = function(e) {
+        console.log("Hall connect ok: "+hallHost);
+        ws.sendJson(1, {
+                serverid: serverId,
+                serverip: "60.174.233.70",
+                serverport: serverPort,
+            });
+    }
+    var gameServer = this;
+    ws.onclose = function(e) {
+        console.log("Hall disconnect");
+        gameServer.loginPlayers = [];
+    }
+    ws.onerror = function(e) {
+        console.log("Hall connection error: "+e.code);
+    }
+    var hallHandler = new HallHandler(this, ws)
+    ws.onmessage = function(e) {
+        hallHandler.handleMessage(e.data)
+    }
     this.socketServer = new WebSocket.Server({
         port: this.config.serverPort,
         perMessageDeflate: false
@@ -728,3 +757,7 @@ WebSocket.prototype.sendPacket = function(packet) {
         this.removeAllListeners();
     }
 };
+
+WebSocket.prototype.sendJson = function(msgid, v) {
+    this.send(JSON.stringify({id: msgid, body: v}))
+}

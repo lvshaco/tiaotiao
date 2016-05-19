@@ -56,20 +56,30 @@ PacketHandler.prototype.handleMessage = function(message) {
             this.pressEjectMass = true;
             break;
         case 255: // enter
-            if (view.byteLength >= 7) {
+            if (view.byteLength >= 15) {
                 this.protocol = view.getUint32(1, true);
                 var index = view.getUint8(5, true);
-                var name_len = view.getUint8(6, true);
+                var roleid = view.getUint32(6, true);
+                var key = view.getUint32(10, true);
+                var name_len = view.getUint8(14, true);
                 var nick = "";
                 var maxLen = this.gameServer.config.playerMaxNickLength * 2; // 2 bytes per char
-                for (var i=7; i<view.byteLength && i<=maxLen; i+=1) {
+                for (var i=15; i<view.byteLength && i<=maxLen; i+=1) {
                     var charCode = view.getUint8(i,true);
                     if (charCode == 0) {
                         break;
                     }
                     nick += String.fromCharCode(charCode);
                 }
-                this.enterBoard(nick, index);
+
+                // check has in loginPlayers
+                var player = this.gameServer.loginPlayers[roleid];
+                if (!player || 
+                    player.key != key) {
+                    console.log("Invalid player enter: "+roleid+","+key);
+                    roleid = 0;
+                }
+                this.enterBoard(roleid, nick, index);
                 
                 var c = this.gameServer.config;
                 console.log('sendSetBorder');
@@ -86,10 +96,10 @@ PacketHandler.prototype.handleMessage = function(message) {
     }
 };
 
-PacketHandler.prototype.enterBoard = function(newNick, index) {
+PacketHandler.prototype.enterBoard = function(roleid, newNick, index) {
     var client = this.socket.playerTracker;
     if (client.cells.length < 1) {
-       
+        client.roleid = roleid; 
         client.setName(newNick);
         client.picture = index;
         client.gaming = true;
