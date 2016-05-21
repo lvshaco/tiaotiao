@@ -1,6 +1,7 @@
 #!/bin/bash
 
 tar -zcf tiaotiao.tgz \
+    config.js.def \
     start \
     client.js \
     package.json \

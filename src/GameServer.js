@@ -1,7 +1,6 @@
 var WebSocket = require('ws');
 var http = require('http');
 var fs = require("fs");
-var ini = require('./modules/ini.js');
 
 var Packet = require('./packet');
 var HallHandler = require('./HallHandler');
@@ -33,57 +32,7 @@ function GameServer() {
     this.tickSpawn = 0;
     this.starttime = 0;
 
-    this.config = {
-        // server
-        serverId: 1,
-        serverMaxConnections: 64, 
-        serverIp: "127.0.0.1",
-        serverPort: 1448,
-        serverLogLevel: 1,
-        hallHost: "127.0.0.1:19000",
-
-        gameTime: 60*1000,
-        maxRank: 100,
-
-        // viewbox
-        serverViewBaseX: 1024,
-        serverViewBaseY: 592,
-
-        // border
-        borderLeft: 0,
-        borderRight: 6000, 
-        borderTop: 0, 
-        borderBottom: 6000,
-       
-        // food
-        foodSpawnAmount: 12,
-        foodStartAmount: 500,
-        foodMaxAmount: 2000,
-        foodMass: 1, 
-       
-        // virus
-        virusMinAmount: 10,
-        virusMaxAmount: 50,
-        virusStartMass: 100,
-
-        // eject
-        ejectMass: 14, 
-        ejectMassCooldown: 50, // ms
-        ejectSpeed: 100, 
-
-        // player
-        playerStartMass: 10,
-        playerMaxMass: 22500,
-        playerMinMassEject: 32,
-        playerMinMassSplit: 36,
-        playerMaxCells: 16,
-
-        playerRecombineTime: 8, // second
-        playerMassDecayRate: .002, // per second
-        playerMinMassDecay: 11, 
-        playerMaxNickLength: 15,
-    };
-    this.loadConfig();
+    this.config = require('../config');
 }
 
 module.exports = GameServer;
@@ -801,18 +750,6 @@ GameServer.prototype.updateCells = function() {
             var massDecay = 1 - (this.config.playerMassDecayRate * 0.05);
             cell.mass *= massDecay;
         }
-    }
-};
-
-GameServer.prototype.loadConfig = function() {
-    try {
-        var load = ini.parse(fs.readFileSync('./gameserver.ini', 'utf-8'));
-        for (var obj in load) {
-            this.config[obj] = load[obj];
-        }
-    } catch (err) {
-        console.log("Create new config");
-        fs.writeFileSync('./gameserver.ini', ini.stringify(this.config));
     }
 };
 

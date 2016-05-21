@@ -1,0 +1,50 @@
+module.exports = {
+        // server
+        serverId: 1,
+        serverMaxConnections: 64, 
+        serverIp: "127.0.0.1",
+        serverPort: 1448,
+        serverLogLevel: 1,
+        hallHost: "127.0.0.1:19000",
+
+        gameTime: 60*1000,
+        maxRank: 100,
+
+        // viewbox
+        serverViewBaseX: 1024,
+        serverViewBaseY: 592,
+
+        // border
+        borderLeft: 0,
+        borderRight: 6000, 
+        borderTop: 0, 
+        borderBottom: 6000,
+       
+        // food
+        foodSpawnAmount: 12,
+        foodStartAmount: 500,
+        foodMaxAmount: 2000,
+        foodMass: 1, 
+       
+        // virus
+        virusMinAmount: 10,
+        virusMaxAmount: 50,
+        virusStartMass: 100,
+
+        // eject
+        ejectMass: 14, 
+        ejectMassCooldown: 50, // ms
+        ejectSpeed: 100, 
+
+        // player
+        playerStartMass: 10,
+        playerMaxMass: 22500,
+        playerMinMassEject: 32,
+        playerMinMassSplit: 36,
+        playerMaxCells: 16,
+
+        playerRecombineTime: 8, // second
+        playerMassDecayRate: .006, // per second
+        playerMinMassDecay: 11, 
+        playerMaxNickLength: 15,
+    };
