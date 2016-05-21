@@ -33,7 +33,7 @@ PacketHandler.prototype.handleMessage = function(message) {
     var view = new DataView(buffer);
     var packetId = view.getUint8(0, true);
 
-//    console.log("handleMessage:"+packetId+ " len:"+view.byteLength);
+    //console.log("handleMessage:"+packetId+ " len:"+view.byteLength);
 
     switch (packetId) {
         case 16:
@@ -102,6 +102,9 @@ PacketHandler.prototype.enterBoard = function(player, newNick, icon) {
         if (player) {
             client.info = player;
         }
+        console.log("player:");
+        console.log(player);
+        console.log(client.info);
         client.setName(newNick);
         client.icon = icon;
         client.gaming = true;

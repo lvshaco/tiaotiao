@@ -28,6 +28,7 @@ struct GameOver {
 } */
 GameOver.prototype.build = function() {
     var count = this.clients.length;
+    var len = 0;
     for (var i=0; i<count; ++i) {
         var c = this.clients[i]
         len = len + 36+c.getName().length + 1;

@@ -37,8 +37,10 @@ function GameServer() {
         // server
         serverId: 1,
         serverMaxConnections: 64, 
+        serverIp: "127.0.0.1",
         serverPort: 1448,
         serverLogLevel: 1,
+        hallHost: "127.0.0.1:19000",
 
         gameTime: 60*1000,
         maxRank: 100,
@@ -89,8 +91,9 @@ module.exports = GameServer;
 GameServer.prototype.start = function() {
     this.log.setup(this);
 
-    var hallHost = "127.0.0.1:19000";//this.config.hallHost;
-    var serverId = this.config.serverId;//serverId;
+    var hallHost = this.config.hallHost;
+    var serverId = this.config.serverId;
+    var serverIp = this.config.serverIp;
     var serverPort = this.config.serverPort;
     console.log("Hall connect ... "+hallHost)
     var ws = new WebSocket('ws://'+hallHost);
@@ -99,7 +102,7 @@ GameServer.prototype.start = function() {
         console.log("Hall connect ok: "+hallHost);
         ws.sendJson(1, {
                 serverid: serverId,
-                serverip: "60.174.233.70",
+                serverip: serverIp,
                 serverport: serverPort,
             });
     }
@@ -336,7 +339,7 @@ GameServer.prototype.gameOver = function() {
     var maxRank = this.config.maxRank || 100;
     var msg = [];
     for (var i=0; i<this.clients.length; ++i) {
-        var c = this.clients[i];
+        var c = this.clients[i].playerTracker;
         c.copper = 10;
         c.exp = 160*2;
         if (c.rank != 0) {
@@ -353,11 +356,22 @@ GameServer.prototype.gameOver = function() {
     this.nodeServer.sendJson(11, msg);
 
     for (var i=0; i<this.clients.length; ++i) {
-        var c = this.clients[i];
+        var c = this.clients[i].playerTracker;
         var pack = new Packet.GameOver(c, ranks);
         c.socket.sendPacket(pack);
         c.socket.close();
     }
+    // reset data
+    this.lastNodeId = 1;
+    this.lastPlayerId = 1;
+    this.loginPlayers = [];
+    this.clients = [];
+    this.nodes = [];
+    this.nodesVirus = []; 
+    this.nodesEjected = [];
+    this.nodesPlayer = [];
+    this.currentFood = 0;
+    this.movingNodes = [];
 }
 
 // loop
@@ -366,7 +380,7 @@ GameServer.prototype.mainLoop = function() {
     if (this.starttime == 0) {
         this.starttime = local;
     }
-    var gameTime = this.config.gameTime || 60*1000;
+    var gameTime = this.config.gameTime;
     if (local - this.starttime >= gameTime) {
         this.gameOver();
         this.starttime= 0;

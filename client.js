@@ -13,8 +13,8 @@ var msg = new Buffer(15);
 msg.writeUInt8(255, 0);
 msg.writeUInt32LE(0, 1);
 msg.writeUInt8(0, 5);
-msg.writeUInt32LE(1, 6);
-msg.writeUInt32LE(0, 10);
+msg.writeUInt32LE(4, 6);
+msg.writeUInt32LE(1582344, 10);
 msg.writeUInt8(0, 14);
 console.log(showProperties(ws));
 ws.send(msg);
@@ -39,10 +39,12 @@ var msgid = msg.readUInt8(0);
 console.log("RECEIVED: ", msg.length, msgid);
 if (msgid == 64) {
     console.log("GetBoarder MoveTo: ...");
-     var msg = new Buffer(9);
+     var msg = new Buffer(17);
     msg.writeUInt8(16, 0);
     msg.writeInt32LE(3100, 1);
     msg.writeInt32LE(3100, 5);
+    msg.writeInt32LE(3100, 9);
+    msg.writeInt32LE(3100, 13);
     ws.send(msg);
 }
 //ws.close();
