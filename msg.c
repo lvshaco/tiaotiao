@@ -9,6 +9,8 @@ struct EnterBoard {
     MSG_HEAD;
     uint32_t protocol; // 保留字段，当前为0
     uint8_t index; // 创建的index
+    uint32_t roleid; // 角色id
+    uint32_t key; // key
     uint8_t name_len; // 名字长度
     name bytes; // 名字字节
 };
@@ -85,7 +87,7 @@ struct UpdateRank {
     } vector;
 }
 
-// 18 战斗结算 
+// 18 战斗结算 (最后一个元素为自己)
 struct GameOver {
     struct {
         uint32_t rank;//名次
