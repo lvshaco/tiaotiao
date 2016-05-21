@@ -76,6 +76,32 @@ struct UpdateNodes {
     } vector;
 }; 
 
+// 17 战斗排名更新
+struct UpdateRank {
+    struct {
+        uint32_t roleid;
+        uint8_t name_len; // 名字的长度
+        name bytes;// 名字字节
+    } vector;
+}
+
+// 18 战斗结算 
+struct GameOver {
+    struct {
+        uint32_t rank;//名次
+        uint32_t roleid;
+        uint8_t sex;
+        uint32_t province;
+        uint32_t city;
+        uint32_t mass;
+        uint32_t eat;
+        uint32_t copper;
+        uint32_t exp;
+        uint8_t name_len; // 名字的长度
+        name bytes;// 名字字节
+    } vector;
+} 
+
 EnterBoard msg;
 msg.msgid = 255;
 msg.protocol = 0; // 现在直接填0，当前游戏版本

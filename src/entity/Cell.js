@@ -9,7 +9,7 @@ function Cell(nodeId, owner, position, mass, gameServer) {
     if (owner) {
         // do null
     } else {
-        this.picture = Math.floor(Math.random()*65535);
+        this.icon = Math.floor(Math.random()*65535);
     }
     this.lastMoveAngle = 0;
     this.position = position;
@@ -36,11 +36,11 @@ Cell.prototype.getName = function() {
     }
 };
 
-Cell.prototype.getPicture = function() {
+Cell.prototype.getIcon = function() {
     if (this.owner) {
-        return this.owner.picture;
+        return this.owner.icon;
     } else {
-        return this.picture;
+        return this.icon;
     }
 };
 

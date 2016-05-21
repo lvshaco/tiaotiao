@@ -58,7 +58,7 @@ PacketHandler.prototype.handleMessage = function(message) {
         case 255: // enter
             if (view.byteLength >= 15) {
                 this.protocol = view.getUint32(1, true);
-                var index = view.getUint8(5, true);
+                var icon = view.getUint8(5, true);
                 var roleid = view.getUint32(6, true);
                 var key = view.getUint32(10, true);
                 var name_len = view.getUint8(14, true);
@@ -72,14 +72,14 @@ PacketHandler.prototype.handleMessage = function(message) {
                     nick += String.fromCharCode(charCode);
                 }
 
-                // check has in loginPlayers
+                // check has in loginPlayers, todo check has enter state
                 var player = this.gameServer.loginPlayers[roleid];
                 if (!player || 
                     player.key != key) {
                     console.log("Invalid player enter: "+roleid+","+key);
-                    roleid = 0;
+                    player = null;
                 }
-                this.enterBoard(roleid, nick, index);
+                this.enterBoard(player, nick, icon);
                 
                 var c = this.gameServer.config;
                 console.log('sendSetBorder');
@@ -96,12 +96,14 @@ PacketHandler.prototype.handleMessage = function(message) {
     }
 };
 
-PacketHandler.prototype.enterBoard = function(roleid, newNick, index) {
+PacketHandler.prototype.enterBoard = function(player, newNick, icon) {
     var client = this.socket.playerTracker;
     if (client.cells.length < 1) {
-        client.roleid = roleid; 
+        if (player) {
+            client.info = player;
+        }
         client.setName(newNick);
-        client.picture = index;
+        client.icon = icon;
         client.gaming = true;
         
         this.gameServer.spawnPlayer(client);

@@ -3,6 +3,7 @@ var http = require('http');
 var fs = require("fs");
 var ini = require('./modules/ini.js');
 
+var Packet = require('./packet');
 var HallHandler = require('./HallHandler');
 var PlayerTracker = require('./PlayerTracker');
 var PacketHandler = require('./PacketHandler');
@@ -23,12 +24,14 @@ function GameServer() {
     this.currentFood = 0;
     this.movingNodes = [];
 
+    this.rankpacket;
     this.log = new Logger();
 
     this.time = +new Date;
     this.tick = 0;
     this.fullTick = 0;
     this.tickSpawn = 0;
+    this.starttime = 0;
 
     this.config = {
         // server
@@ -36,6 +39,9 @@ function GameServer() {
         serverMaxConnections: 64, 
         serverPort: 1448,
         serverLogLevel: 1,
+
+        gameTime: 60*1000,
+        maxRank: 100,
 
         // viewbox
         serverViewBaseX: 1024,
@@ -301,9 +307,72 @@ GameServer.prototype.removeNode = function(node) {
     }
 };
 
+GameServer.prototype.updateRank = function() {
+    var ranks = [];
+    for (var i = 0; i < this.clients.length; i++) {
+        if (typeof this.clients[i] == "undefined") {
+            continue;
+        }
+        var p = this.clients[i].playerTracker;
+        if (p.gaming) {
+            p.calcScore();
+            ranks.push(p);
+        }
+    }
+    ranks.sort(function(a,b) {
+        return b.score - a.score;
+    });
+    var maxRank = this.config.maxRank || 100;
+    this.rankpacket = new Packet.UpdateRank(ranks, maxRank);
+    return ranks;
+}
+
+GameServer.prototype.gameOver = function() {
+    var ranks = this.updateRank();
+    for (var i=0; i<ranks; ++i) {
+        var c = ranks[i];
+        c.rank = i+1;
+    }
+    var maxRank = this.config.maxRank || 100;
+    var msg = [];
+    for (var i=0; i<this.clients.length; ++i) {
+        var c = this.clients[i];
+        c.copper = 10;
+        c.exp = 160*2;
+        if (c.rank != 0) {
+            c.exp += (maxRank-c.rank)*3;
+        }
+        msg.push({
+            roleid: c.info.roleid,
+            copper: c.copper,
+            exp: c.exp,
+            eat: c.eat,
+            mass: c.score, // = score
+        });
+    }
+    this.nodeServer.sendJson(11, msg);
+
+    for (var i=0; i<this.clients.length; ++i) {
+        var c = this.clients[i];
+        var pack = new Packet.GameOver(c, ranks);
+        c.socket.sendPacket(pack);
+        c.socket.close();
+    }
+}
+
 // loop
 GameServer.prototype.mainLoop = function() {
     var local = new Date();
+    if (this.starttime == 0) {
+        this.starttime = local;
+    }
+    var gameTime = this.config.gameTime || 60*1000;
+    if (local - this.starttime >= gameTime) {
+        this.gameOver();
+        this.starttime= 0;
+        return;
+    }
+
     this.tick += (local - this.time);
     this.time = local;
     
@@ -311,17 +380,18 @@ GameServer.prototype.mainLoop = function() {
 
     if (this.tick >= 25) {
         this.fullTick++;
-        setTimeout(this.updateMoveEngine.bind(this, this.fullTick >= 2), 0);
+        setTimeout(this.updateMoveEngine.bind(this, (this.fullTick%2)==0), 0);
 
-        if (this.fullTick >= 2) {
+        if ((this.fullTick%2)==0) {
             setTimeout(this.spawnTick.bind(this), 0);
             setTimeout(this.updateCells.bind(this), 0);
 
             this.updateClients();
-
-            this.fullTick = 0;
         }
 
+        if ((this.fullTick%8)==0) {
+            this.updateRank();            
+        }
         this.tick = 0;
     }
 };

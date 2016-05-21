@@ -125,6 +125,9 @@ PlayerCell.prototype.collision = function(gameServer) {
 
 PlayerCell.prototype.onConsume = function(consumer, gameServer) {
     consumer.addMass(this.mass);
+    if (consumer.owner) {
+        consumer.owner.eat +=1;
+    }
 };
 
 PlayerCell.prototype.onAdd = function(gameServer) {

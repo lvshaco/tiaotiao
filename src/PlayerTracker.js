@@ -4,9 +4,20 @@ var GameServer = require('./GameServer');
 function PlayerTracker(gameServer, socket) {
     this.pID = gameServer.getNewPlayerID();
     this.disconnect = -1;
-    this.roleid = 0;
+    this.info = {
+        roleid: 0,
+        sex:0,
+        province: 0,
+        city: 0,
+    };
+    this.eat = 0;
+    this.copper = 0;
+    this.exp = 0;
+
     this.name = "";
-    this.picture = 0;
+    this.icon = 0;
+    this.score = false;
+    this.rank = 0;
     this.gameServer = gameServer;
     this.socket = socket;
     this.nodeAdditionQueue = [];
@@ -22,7 +33,7 @@ function PlayerTracker(gameServer, socket) {
         x: 0,
         y: 0
     };
-    this.tickViewBox = 0;
+    this.tick = 0;
 
     this.sightRangeX = 0;
     this.sightRangeY = 0;
@@ -52,6 +63,14 @@ PlayerTracker.prototype.getName = function() {
     return this.name;
 };
 
+PlayerTracker.prototype.calcScore = function() {
+    var s = 0;
+    for (var i = 0; i < this.cells.length; i++) {
+        s += this.cells[i].mass;
+    }
+    this.score = s
+};
+
 PlayerTracker.prototype.setColor = function(color) {
     this.color.r = color.r;
     this.color.b = color.b;
@@ -73,6 +92,11 @@ PlayerTracker.prototype.update = function() {
         this.socket.packetHandler.pressEjectMass = false;
     }
 
+    // rebirth
+    if (this.cells.length == 0) {
+        this.gameServer.spawnPlayer(this);
+    }
+
     // sync destroy node
     var i = 0;
     while (i < this.nodeDestroyQueue.length) {
@@ -90,7 +114,7 @@ PlayerTracker.prototype.update = function() {
     var nonVisibleNodes = []; 
     var updateNodes = []; 
 
-    if (this.tickViewBox <= 0) {
+    if (this.tick%3==0) {
         var newVisible = this.calcViewBox();
         try { 
             for (var i = 0; i < this.visibleNodes.length; i++) {
@@ -108,9 +132,7 @@ PlayerTracker.prototype.update = function() {
         } finally {} 
 
         this.visibleNodes = newVisible;
-        this.tickViewBox = 2;
     } else {
-        this.tickViewBox--;
         for (var i = 0; i < this.nodeAdditionQueue.length; i++) {
             var node = this.nodeAdditionQueue[i];
             this.visibleNodes.push(node);
@@ -139,6 +161,16 @@ PlayerTracker.prototype.update = function() {
     this.nodeDestroyQueue = [];
     this.nodeAdditionQueue = []; 
 
+    // rank
+    if (this.tick%10 == 0) {
+        var pack = this.gameServer.rankpacket;
+        if(pack) {
+            this.socket.sendPacket(pack);
+        }
+    }
+
+    //
+    this.tick += 1;
     if (this.disconnect > -1) {
         this.disconnect--;
         if (this.disconnect == -1) {

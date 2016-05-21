@@ -22,10 +22,7 @@ HallHandler.prototype.handleMessage = function(data) {
             code = 1;
         } else {
             code = 0;
-            players[body.roleid] = {
-                roleid: body.roleid,
-                key: body.key,
-            }
+            players[body.roleid] = body;
         }
         this.socket.sendJson(10, {code:code});
     default:

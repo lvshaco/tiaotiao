@@ -3,4 +3,6 @@ module.exports = {
     ClearNodes: require('./ClearNodes'),
     SetBorder: require('./SetBorder'),
     UpdateNodes: require('./UpdateNodes'),
+    UpdateRank: require('./UpdateRank'),
+    GameOver: require('./GameOver'),
 };
