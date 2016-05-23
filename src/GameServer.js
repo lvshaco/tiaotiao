@@ -10,7 +10,7 @@ var Entity = require('./entity');
 var Logger = require('./modules/log');
 
 function GameServer() {
-    this.run = true;
+    this.run = false;
     this.lastNodeId = 1;
     this.lastPlayerId = 1;
     this.loginPlayers = [];
@@ -44,29 +44,50 @@ GameServer.prototype.start = function() {
     var serverId = this.config.serverId;
     var serverIp = this.config.serverIp;
     var serverPort = this.config.serverPort;
-    console.log("Hall connect ... "+hallHost)
-    var ws = new WebSocket('ws://'+hallHost);
-    this.nodeServer = ws;
-    ws.onopen = function(e) {
-        console.log("Hall connect ok: "+hallHost);
-        ws.sendJson(1, {
-                serverid: serverId,
-                serverip: serverIp,
-                serverport: serverPort,
-            });
+    var gamesvr = this;
+
+    function connectHall() {
+        console.log("Hall connect ... "+hallHost) 
+        var ws = new WebSocket('ws://'+hallHost);
+        console.log("new websocket ok");
+        gamesvr.nodeServer = ws;
+        ws.onopen = function(e) {
+            console.log("Hall connect ok: "+hallHost);
+            ws.sendJson(1, {
+                    serverid: serverId,
+                    serverip: serverIp,
+                    serverport: serverPort,
+                });
+            var rolelist = [];
+            var clients = gamesvr.clients;
+            for (var i=0; i<clients.length; ++i) {
+                var c = clients[i].playerTracker;
+                if (c.info.roleid > 0) {
+                    rolelist.push(c.info.roleid);
+                }
+            }
+            if (rolelist.length>0) {
+                console.log("send SyncState")
+                ws.sendJson(2, rolelist);
+            }
+        }
+        ws.onclose = function(e) {
+            console.log("Hall disconnect");
+            gamesvr.nodeServer = null;
+            setTimeout(connectHall, 1000);
+        }
+        ws.onerror = function(e) {
+            console.log("Hall connection error: "+e.code);
+            setTimeout(connectHall, 1000);
+        }
+        var hallHandler = new HallHandler(gamesvr, ws)
+        ws.onmessage = function(e) {
+            hallHandler.handleMessage(e.data)
+        }
     }
-    var gameServer = this;
-    ws.onclose = function(e) {
-        console.log("Hall disconnect");
-        gameServer.loginPlayers = [];
-    }
-    ws.onerror = function(e) {
-        console.log("Hall connection error: "+e.code);
-    }
-    var hallHandler = new HallHandler(this, ws)
-    ws.onmessage = function(e) {
-        hallHandler.handleMessage(e.data)
-    }
+    
+    connectHall();
+
     this.socketServer = new WebSocket.Server({
         port: this.config.serverPort,
         perMessageDeflate: false
@@ -138,6 +159,10 @@ GameServer.prototype.start = function() {
         ws.on('error', close.bind(bindObject));
         ws.on('close', close.bind(bindObject));
         this.clients.push(ws);
+        if (!this.run) {
+            this.run = true;
+            this.starttime = 0;
+        }
     }
 };
 
@@ -302,8 +327,10 @@ GameServer.prototype.gameOver = function() {
             mass: c.score, // = score
         });
     }
-    this.nodeServer.sendJson(11, msg);
-
+    if (this.nodeServer) {
+        console.log("send FightResult");
+        this.nodeServer.sendJson(11, msg);
+    }
     for (var i=0; i<this.clients.length; ++i) {
         var c = this.clients[i].playerTracker;
         var pack = new Packet.GameOver(c, ranks);
@@ -325,6 +352,8 @@ GameServer.prototype.gameOver = function() {
 
 // loop
 GameServer.prototype.mainLoop = function() {
+    if (!this.run) return;
+
     var local = new Date();
     if (this.starttime == 0) {
         this.starttime = local;
@@ -332,15 +361,13 @@ GameServer.prototype.mainLoop = function() {
     var gameTime = this.config.gameTime;
     if (local - this.starttime >= gameTime) {
         this.gameOver();
-        this.starttime= 0;
+        this.run = false;
         return;
     }
 
     this.tick += (local - this.time);
     this.time = local;
     
-    if (!this.run) return;
-
     if (this.tick >= 25) {
         this.fullTick++;
         setTimeout(this.updateMoveEngine.bind(this, (this.fullTick%2)==0), 0);

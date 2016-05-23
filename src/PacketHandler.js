@@ -83,11 +83,14 @@ PacketHandler.prototype.handleMessage = function(message) {
                 
                 var c = this.gameServer.config;
                 console.log('sendSetBorder');
+                var starttime = this.gameServer.starttime;
+                var now = new Date();
                 this.socket.sendPacket(new Packet.SetBorder(
                     c.borderLeft, 
                     c.borderRight,
                     c.borderTop,
-                    c.borderBottom
+                    c.borderBottom,
+                    c.gameTime-(now-starttime)
                 ));
             }
             break;

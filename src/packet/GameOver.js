@@ -33,14 +33,16 @@ GameOver.prototype.build = function() {
         var c = this.clients[i]
         len = len + 36+c.getName().length + 1;
     }
-    var buflen = 1 + len;
+    var buflen = 3 + len;
 
     var buf = new ArrayBuffer(buflen);
     var view = new DataView(buf);
 
     view.setUint8(0, 18, true); // Packet ID
     var offset = 1;
+    view.setUint16(offset, count, true); offset += 2;
     for (var i=0; i<count; ++i) {
+        var c = this.clients[i];
         view.setUint32(offset, c.rank, true); offset += 4;
         view.setUint32(offset, c.info.roleid, true); offset += 4;
         view.setUint32(offset, c.info.sex, true); offset += 4;
@@ -51,7 +53,6 @@ GameOver.prototype.build = function() {
         view.setUint32(offset, c.copper, true); offset += 4;
         view.setUint32(offset, c.exp, true); offset += 4;
 
-        var c = this.clients[i];
         var name = c.getName();
         if (name) {
             view.setUint8(offset, name.length, true);

@@ -13,7 +13,7 @@ UpdateRank.prototype.build = function() {
     if (count > this.count) {
         count = this.count;
     }
-    var len = 0;
+    var len = 2;
     for (var i=0; i<count; ++i) {
         var c = this.clients[i]
         len = len + 4+c.getName().length + 1;
@@ -25,10 +25,12 @@ UpdateRank.prototype.build = function() {
 
     view.setUint8(0, 17, true); // Packet ID
     var offset = 1;
+    view.setUint16(offset, count, true); offset +=2;
     for (var i=0; i<count; ++i) {
+        var c = this.clients[i];
         view.setUint32(offset, c.info.roleid, true);
         offset += 4;
-        var c = this.clients[i];
+
         var name = c.getName();
         if (name) {
             view.setUint8(offset, name.length, true);
