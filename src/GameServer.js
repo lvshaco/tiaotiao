@@ -306,7 +306,7 @@ GameServer.prototype.updateRank = function() {
 
 GameServer.prototype.gameOver = function() {
     var ranks = this.updateRank();
-    for (var i=0; i<ranks; ++i) {
+    for (var i=0; i<ranks.length; ++i) {
         var c = ranks[i];
         c.rank = i+1;
     }
@@ -320,6 +320,7 @@ GameServer.prototype.gameOver = function() {
             c.exp += (maxRank-c.rank)*3;
         }
         msg.push({
+            rank: c.rank,
             roleid: c.info.roleid,
             copper: c.copper,
             exp: c.exp,
