@@ -16,7 +16,7 @@ function PlayerTracker(gameServer, socket) {
 
     this.name = "";
     this.icon = 0;
-    this.score = false;
+    this.score = 0;
     this.rank = 0;
     this.gameServer = gameServer;
     this.socket = socket;

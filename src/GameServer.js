@@ -301,6 +301,7 @@ GameServer.prototype.updateRank = function() {
     });
     var maxRank = this.config.maxRank || 100;
     this.rankpacket = new Packet.UpdateRank(ranks, maxRank);
+    ranks = ranks.slice(0, maxRank);
     return ranks;
 }
 
@@ -311,7 +312,7 @@ GameServer.prototype.gameOver = function() {
         c.rank = i+1;
     }
     var maxRank = this.config.maxRank || 100;
-    var msg = [];
+    var roles = [];
     for (var i=0; i<this.clients.length; ++i) {
         var c = this.clients[i].playerTracker;
         c.copper = 10;
@@ -319,7 +320,7 @@ GameServer.prototype.gameOver = function() {
         if (c.rank != 0) {
             c.exp += (maxRank-c.rank)*3;
         }
-        msg.push({
+        roles.push({
             rank: c.rank,
             roleid: c.info.roleid,
             copper: c.copper,
@@ -328,9 +329,14 @@ GameServer.prototype.gameOver = function() {
             mass: c.score, // = score
         });
     }
+    var rs = [];
+    for (var i=0; i<ranks.length; ++i) {
+        var c = ranks[i]
+        rs.push(c.info.roleid)
+    }
     if (this.nodeServer) {
         console.log("send FightResult");
-        this.nodeServer.sendJson(11, msg);
+        this.nodeServer.sendJson(11, {roles:roles, ranks:rs});
     }
     for (var i=0; i<this.clients.length; ++i) {
         var c = this.clients[i].playerTracker;
