@@ -44,7 +44,7 @@ module.exports = {
         playerMaxCells: 16,
 
         playerRecombineTime: 8, // second
-        playerMassDecayRate: .006, // per second
+        playerMassDecayRate: .001, // per second
         playerMinMassDecay: 11, 
         playerMaxNickLength: 15,
     };
