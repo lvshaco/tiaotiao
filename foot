@@ -9,9 +9,9 @@ tar -zcf tiaotiao.tgz \
     node_modules
 
 scp tiaotiao.tgz agar:
-rm -rf tiaotiao.tgz
 ssh agar "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1448 1>/dev/null";
 
 scp tiaotiao.tgz agar1:
-rm -rf tiaotiao.tgz
 ssh agar1 "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1449 1>/dev/null";
+
+rm -rf tiaotiao.tgz
