@@ -320,13 +320,17 @@ GameServer.prototype.gameOver = function() {
         if (c.rank != 0) {
             c.exp += (maxRank-c.rank)*3;
         }
+        c.calcLive();
         roles.push({
+            name: c.name,
             rank: c.rank,
             roleid: c.info.roleid,
             copper: c.copper,
             exp: c.exp,
             eat: c.eat,
             mass: c.score, // = score
+            //time: c.time,
+            live: Math.floor(c.live/1000),
         });
     }
     var rs = [];

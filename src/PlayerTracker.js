@@ -14,6 +14,8 @@ function PlayerTracker(gameServer, socket) {
     this.copper = 0;
     this.exp = 0;
 
+    this.live = 0;
+    this.lasttime = new Date();
     this.name = "";
     this.icon = 0;
     this.score = 0;
@@ -55,6 +57,12 @@ function PlayerTracker(gameServer, socket) {
 
 module.exports = PlayerTracker;
 
+PlayerTracker.prototype.startLive = function() {
+    this.lasttime = new Date();
+}
+PlayerTracker.prototype.calcLive = function() {
+    this.live += new Date() - this.lasttime;
+}
 PlayerTracker.prototype.setName = function(name) {
     this.name = name;
 };
@@ -95,6 +103,8 @@ PlayerTracker.prototype.update = function() {
     // rebirth
     if (this.cells.length == 0) {
         this.gameServer.spawnPlayer(this);
+        this.calcLive();
+        this.startLive();
     }
 
     // sync destroy node
