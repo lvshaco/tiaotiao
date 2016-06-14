@@ -305,6 +305,27 @@ GameServer.prototype.updateRank = function() {
     return ranks;
 }
 
+function rollbox(rank, v) {
+  var box1 = false;
+  var box2 = false;
+  if (rank==1) {
+    box1=Math.random() < 0.5;
+    box2=Math.random() < 0.1;
+  } else if (rank==2) {
+    box1=Math.random() < 0.4;
+    box2=Math.random() < 0.05;
+  } else if (rank>=3 && rank<=5) {
+    box1=Math.random() < 0.3;
+    box2=Math.random() < 0.025;
+  } else if (rank>=6 && rank<=10) {
+    box1=Math.random() < 0.2;
+  } else if (rank>=11 && rank<=15) {
+    box1=Math.random() < 0.1;
+  } 
+  v.box1 = box1 ? 1:0;
+  v.box2 = box2 ? 1:0;
+}
+
 GameServer.prototype.gameOver = function() {
     var ranks = this.updateRank();
     for (var i=0; i<ranks.length; ++i) {
@@ -321,7 +342,7 @@ GameServer.prototype.gameOver = function() {
             c.exp += (maxRank-c.rank)*3;
         }
         c.calcLive();
-        roles.push({
+        var one = {
             name: c.name,
             rank: c.rank,
             roleid: c.info.roleid,
@@ -331,7 +352,9 @@ GameServer.prototype.gameOver = function() {
             mass: c.score, // = score
             //time: c.time,
             live: Math.floor(c.live/1000),
-        });
+        };
+        rollbox(c.rank, one);
+        roles.push(one);
     }
     var rs = [];
     for (var i=0; i<ranks.length; ++i) {
