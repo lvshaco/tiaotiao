@@ -31,7 +31,7 @@ UpdateNodes.prototype.build = function() {
 
     view.setUint8(0, 16, true); // Packet ID
     view.setUint16(1, this.destroyQueue.length, true); 
-    console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
+    //console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
     var offset = 3;
     for (var i = 0; i < this.destroyQueue.length; i++) {
         var node = this.destroyQueue[i];
