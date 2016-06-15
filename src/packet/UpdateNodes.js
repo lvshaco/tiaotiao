@@ -14,7 +14,11 @@ UpdateNodes.prototype.build = function() {
         if (typeof node == "undefined") {
             continue;
         }
-        nodesLength = nodesLength + 23 + (node.getName().length); 
+        var playerlen=1;
+        if (node.owner) {
+            playerlen += 4*6;
+        }
+        nodesLength = nodesLength + playerlen+23 + (node.getName().length); 
     }
 
     var buflen = 1 +
@@ -27,7 +31,7 @@ UpdateNodes.prototype.build = function() {
 
     view.setUint8(0, 16, true); // Packet ID
     view.setUint16(1, this.destroyQueue.length, true); 
-    //console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
+    console.log("destroylen:"+this.destroyQueue.length+" unvisible:"+this.nonVisibleNodes.length+" nodes:"+this.nodes.length);
     var offset = 3;
     for (var i = 0; i < this.destroyQueue.length; i++) {
         var node = this.destroyQueue[i];
@@ -89,6 +93,20 @@ UpdateNodes.prototype.build = function() {
         view.setUint16(offset + 20, node.mass, true); // Mass 
         offset += 22;
 
+        var player = node.owner
+        if (player) {
+            var info = player.info
+            view.setUint8(offset, 1, true);offset+=1; // is player
+            view.setUint32(offset, info.heroid, true);offset+=4;
+            view.setUint32(offset, info.herolevel, true);offset+=4;
+            view.setUint32(offset, info.guanghuan, true);offset+=4;
+            view.setUint32(offset, info.baozi, true);offset+=4;
+            view.setUint32(offset, info.canying, true);offset+=4;
+            view.setUint32(offset, info.huahuan, true);offset+=4;
+        } else {
+            view.setUint8(offset, 0, true); // not player
+            offset += 1;
+        }
         //console.log("N--------------------------------i:"+i+" nodeid:"+node.nodeId+" x:"+node.position.x+" y:"+node.position.y);
         var name = node.getName();
         if (name) {
