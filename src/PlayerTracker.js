@@ -9,6 +9,12 @@ function PlayerTracker(gameServer, socket) {
         sex:0,
         province: 0,
         city: 0,
+        heroid:0,
+        herolevel:0,
+        guanghuan:0,
+        baozi:0,
+        canying:0,
+        huahuan:0,
     };
     this.eat = 0;
     this.copper = 0;

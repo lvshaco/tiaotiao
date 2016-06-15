@@ -94,7 +94,7 @@ UpdateNodes.prototype.build = function() {
         offset += 22;
 
         var player = node.owner
-        if (player) {
+        if (player) { 
             var info = player.info
             view.setUint8(offset, 1, true);offset+=1; // is player
             view.setUint32(offset, info.heroid, true);offset+=4;

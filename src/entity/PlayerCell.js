@@ -125,8 +125,19 @@ PlayerCell.prototype.collision = function(gameServer) {
 
 PlayerCell.prototype.onConsume = function(consumer, gameServer) {
     consumer.addMass(this.mass);
-    if (consumer.owner) {
-        consumer.owner.eat +=1;
+    var other = consumer.owner;
+    if (other) {
+        other.eat +=1;
+    }
+    var player = this.owner
+    if (player && player.cells.length==0) {
+        var myid = player.info.roleid;
+        var opid = other.info.roleid;
+        if (myid > 0 && opid > 0) {
+            var rd = gameServer.redis;
+            rd.sadd("opponents:"+myid, opid);
+            rd.incr("eats:"+opid+":"+myid);
+        }
     }
 };
 

@@ -1,6 +1,7 @@
 var WebSocket = require('ws');
 var http = require('http');
 var fs = require("fs");
+var redis = require ("redis");
 
 var Packet = require('./packet');
 var HallHandler = require('./HallHandler');
@@ -46,10 +47,31 @@ GameServer.prototype.start = function() {
     var serverPort = this.config.serverPort;
     var gamesvr = this;
 
+    var rdPort = this.config.redisPort;
+    var rdHost = this.config.redisHost;
+    var rdPasswd = this.config.redisPasswd;
+
+    function connectRedis() {
+        console.log("Redis connect ... "+rdHost+":"+rdPort) 
+        var rd = redis.createClient(rdPort, rdHost);
+        rd.on("error", function(err) {
+            console.log("Redis error: "+err);
+        });
+        rd.on("connect", function(err) {
+            console.log("Redis connect ok: "+rdHost+":"+rdPort);
+            rd.auth(rdPasswd, function(err, res) {
+                if (err) {
+                    console.log("Redis auth fail: "+err);
+                } else {
+                    console.log("Redis auth: "+res);
+                }
+            });
+            gamesvr.redis = rd;
+        });
+    }
     function connectHall() {
         console.log("Hall connect ... "+hallHost) 
         var ws = new WebSocket('ws://'+hallHost);
-        console.log("new websocket ok");
         gamesvr.nodeServer = ws;
         ws.onopen = function(e) {
             console.log("Hall connect ok: "+hallHost);
@@ -85,7 +107,8 @@ GameServer.prototype.start = function() {
             hallHandler.handleMessage(e.data)
         }
     }
-    
+   
+    connectRedis();
     connectHall();
 
     this.socketServer = new WebSocket.Server({

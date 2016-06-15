@@ -6,6 +6,10 @@ module.exports = {
         serverPort: 1448,
         serverLogLevel: 1,
         hallHost: "127.0.0.1:19000",
+        redisHost: "127.0.0.1",
+        redisPort: "17001",
+        redisPasswd: "123456",
+
 
         gameTime: 60*1000,
         maxRank: 100,
