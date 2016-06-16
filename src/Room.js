@@ -32,7 +32,7 @@ function Room(mode) {
 
     this.startingFood();
 
-    console.log("Room Start: "+this.roomid);
+    console.log("Room Start: "+this.roomid+" "+this.mode);
 }
 
 module.exports = Room;
@@ -550,7 +550,7 @@ Room.prototype.update = function(now) {
         this.gameOver();
         this.run = false;
 
-        console.log("Room Over: "+this.roomid);
+        console.log("Room Over: "+this.roomid+" "+this.mode);
         return;
     }
 
