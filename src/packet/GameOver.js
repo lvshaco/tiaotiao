@@ -1,4 +1,5 @@
 const assert = require('assert');
+
 function GameOver(my, clients) {
     var cl = clients.slice(0);
     var idx = cl.indexOf(my);

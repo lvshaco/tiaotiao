@@ -1,5 +1,7 @@
 var Cell = require('./Cell');
 var Packet = require('../packet');
+var config = require('../../config');
+var Ctx = require('../Ctx');
 
 function PlayerCell() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
@@ -49,7 +51,7 @@ PlayerCell.prototype.calcMergeTime = function(base) {
     this.shouldRecombine = this.recombineTicks >= base;
 };
 
-PlayerCell.prototype.calcMove = function(x2, y2, gameServer, moveCell) {
+PlayerCell.prototype.calcMove = function(x2, y2, moveCell) {
     if (moveCell) {
         // move angle
         var deltaY = y2 - this.position.y;
@@ -69,12 +71,11 @@ PlayerCell.prototype.calcMove = function(x2, y2, gameServer, moveCell) {
     }
     //if(this.moveEngineSpeed <= 0)
     //{
-        //this.collision(gameServer);
+        //this.collision();
     //}
 };
 
-PlayerCell.prototype.collision = function(gameServer) {
-    var config = gameServer.config;
+PlayerCell.prototype.collision = function() {
     var r = this.getSize(); 
 
     var x1 = this.position.x;
@@ -123,7 +124,7 @@ PlayerCell.prototype.collision = function(gameServer) {
     this.position.y = y1 >> 0;
 }
 
-PlayerCell.prototype.onConsume = function(consumer, gameServer) {
+PlayerCell.prototype.onConsume = function(consumer, room) {
     consumer.addMass(this.mass);
     var other = consumer.owner;
     if (other) {
@@ -134,32 +135,32 @@ PlayerCell.prototype.onConsume = function(consumer, gameServer) {
         var myid = player.info.roleid;
         var opid = other.info.roleid;
         if (myid > 0 && opid > 0) {
-            var rd = gameServer.redis;
+            var rd = Ctx.redis;
             rd.sadd("opponents:"+myid, opid);
             rd.incr("eats:"+opid+":"+myid);
         }
     }
 };
 
-PlayerCell.prototype.onAdd = function(gameServer) {
+PlayerCell.prototype.onAdd = function(room) {
     this.setColor(this.owner.color);
     this.owner.cells.push(this);
 
     console.log('sendAddNode');
     this.owner.socket.sendPacket(new Packet.AddNode(this));
     
-    gameServer.nodesPlayer.push(this);
+    room.nodesPlayer.push(this);
 };
 
-PlayerCell.prototype.onRemove = function(gameServer) {
+PlayerCell.prototype.onRemove = function(room) {
     var index;
     index = this.owner.cells.indexOf(this);
     if (index != -1) {
         this.owner.cells.splice(index, 1);
     }
-    index = gameServer.nodesPlayer.indexOf(this);
+    index = room.nodesPlayer.indexOf(this);
     if (index != -1) {
-        gameServer.nodesPlayer.splice(index, 1);
+        room.nodesPlayer.splice(index, 1);
     }
 };
 
@@ -178,8 +179,8 @@ PlayerCell.prototype.getDist = function(x1, y1, x2, y2) {
 PlayerCell.prototype.addMass = function(n) {
     this.mass += n;
     // max mass
-    if (this.mass > this.gameServer.config.playerMaxMass)
-        this.mass = this.gameServer.config.playerMaxMass;
+    if (this.mass > config.playerMaxMass)
+        this.mass = config.playerMaxMass;
 
 };
 

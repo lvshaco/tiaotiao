@@ -1,7 +1,9 @@
-var GameServer = require('./GameServer');
+var llog = require('./llog');
+llog.init();
 
+var GameServer = require('./GameServer');
 process.on('SIGHUP', function() {
-  console.log('signal SIGHUP.');
+    console.log('signal SIGHUP.');
 });
 
 console.log("Start server")

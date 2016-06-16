@@ -28,10 +28,10 @@ Food.prototype.sendUpdate = function() {
     return true;
 };
 
-Food.prototype.onRemove = function(gameServer) {
-    gameServer.currentFood--;
+Food.prototype.onRemove = function(room) {
+    room.currentFood--;
 };
 
-Food.prototype.onConsume = function(consumer, gameServer) {
+Food.prototype.onConsume = function(consumer, room) {
     consumer.addMass(this.mass);
 };

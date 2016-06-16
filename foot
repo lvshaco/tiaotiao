@@ -8,8 +8,8 @@ tar -zcf tiaotiao.tgz \
     src \
     node_modules
 
-scp tiaotiao.tgz agar:
-ssh agar "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1448 1>/dev/null";
+#scp tiaotiao.tgz agar:
+#ssh agar "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1448 1>/dev/null";
 
 scp tiaotiao.tgz agar1:
 ssh agar1 "mkdir -pv tiaotiao && tar -mzxf tiaotiao.tgz -C tiaotiao && ./tiaotiao/start 1449 1>/dev/null";

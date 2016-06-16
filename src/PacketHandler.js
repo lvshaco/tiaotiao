@@ -1,4 +1,5 @@
 var Packet = require('./packet');
+var config = require('../config');
 
 function PacketHandler(gameServer, socket) {
     this.gameServer = gameServer;
@@ -41,12 +42,14 @@ PacketHandler.prototype.handleMessage = function(message) {
             //if (view.byteLength == 13) {
             if (view.byteLength >= 9) {
                 var client = this.socket.playerTracker;
-                client.mouse.x = view.getInt32(1, true);
-                client.mouse.y = view.getInt32(5, true);
+                if (client) {
+                    client.mouse.x = view.getInt32(1, true);
+                    client.mouse.y = view.getInt32(5, true);
 
-                client.movedir.x = view.getInt32(9, true)/100;
-                client.movedir.y = view.getInt32(13, true)/100;
-                //console.log(" mouse:"+client.mouse.x+" "+client.mouse.y);
+                    client.movedir.x = view.getInt32(9, true)/100;
+                    client.movedir.y = view.getInt32(13, true)/100;
+                    //console.log(" mouse:"+client.mouse.x+" "+client.mouse.y);
+                }
             }
             break;
         case 17: // split cell
@@ -63,7 +66,7 @@ PacketHandler.prototype.handleMessage = function(message) {
                 var key = view.getUint32(10, true);
                 var name_len = view.getUint8(14, true);
                 var nick = "";
-                var maxLen = this.gameServer.config.playerMaxNickLength * 2; // 2 bytes per char
+                var maxLen = config.playerMaxNickLength * 2; // 2 bytes per char
                 for (var i=15; i<view.byteLength && i<=maxLen; i+=1) {
                     var charCode = view.getUint8(i,true);
                     if (charCode == 0) {
@@ -72,46 +75,10 @@ PacketHandler.prototype.handleMessage = function(message) {
                     nick += String.fromCharCode(charCode);
                 }
 
-                // check has in loginPlayers, todo check has enter state
-                var player = this.gameServer.loginPlayers[roleid];
-                if (!player || 
-                    player.key != key) {
-                    console.log("Invalid player enter: "+roleid+","+key);
-                    player = null;
-                }
-                this.enterBoard(player, nick, icon);
-                
-                var c = this.gameServer.config;
-                console.log('sendSetBorder');
-                var starttime = this.gameServer.starttime;
-                var now = new Date();
-                this.socket.sendPacket(new Packet.SetBorder(
-                    c.borderLeft, 
-                    c.borderRight,
-                    c.borderTop,
-                    c.borderBottom,
-                    c.gameTime-(now-starttime)
-                ));
+                this.gameServer.loginClient(this.socket, roleid, key, nick, icon);
             }
             break;
         default:
             break;
-    }
-};
-
-PacketHandler.prototype.enterBoard = function(player, newNick, icon) {
-    var client = this.socket.playerTracker;
-    if (client.cells.length < 1) {
-        if (player) {
-            client.info = player;
-        }
-        console.log("player:");
-        console.log(player);
-        console.log(client.info);
-        client.setName(newNick);
-        client.icon = icon;
-        client.gaming = true;
-        
-        this.gameServer.spawnPlayer(client);
     }
 };

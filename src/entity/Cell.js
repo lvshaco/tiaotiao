@@ -1,4 +1,6 @@
-function Cell(nodeId, owner, position, mass, gameServer) {
+var lutil = require('../lutil')
+
+function Cell(nodeId, owner, position, mass) {
     this.nodeId = nodeId;
     this.owner = owner; 
     this.color = {
@@ -18,7 +20,6 @@ function Cell(nodeId, owner, position, mass, gameServer) {
     this.spiked = 0; // 1 = has spike
 
     this.killedBy; 
-    this.gameServer = gameServer;
 
     this.moveEngineSpeed = 0; // move speed
     this.moveEngineTicks = 0; // move tick 
@@ -59,7 +60,7 @@ Cell.prototype.getType = function() {
 };
 
 Cell.prototype.getSize = function() {
-    return this.gameServer.getSizeFromMass(this.mass);
+    return lutil.getSizeFromMass(this.mass);
 };
 
 Cell.prototype.getSquareSize = function() {
@@ -71,7 +72,7 @@ Cell.prototype.addMass = function(n) {
 };
 
 Cell.prototype.getSpeed = function() {
-    return this.gameServer.getSpeedFromMass(this.mass);
+    return lutil.getSpeedFromMass(this.mass);
 };
 
 Cell.prototype.setAngle = function(radians) {
@@ -168,19 +169,19 @@ Cell.prototype.sendUpdate = function() {
     return true;
 };
 
-Cell.prototype.onConsume = function(consumer, gameServer) {
+Cell.prototype.onConsume = function(consumer, room) {
 };
 
-Cell.prototype.onAdd = function(gameServer) {
+Cell.prototype.onAdd = function(room) {
 };
 
-Cell.prototype.onRemove = function(gameServer) {
+Cell.prototype.onRemove = function(room) {
 };
 
-Cell.prototype.onAutoMove = function(gameServer) {
+Cell.prototype.onAutoMove = function(room) {
 };
 
-Cell.prototype.moveDone = function(gameServer) {
+Cell.prototype.moveDone = function(room) {
 };
 
 Cell.prototype.abs = function(x) {

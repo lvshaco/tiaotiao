@@ -1,4 +1,5 @@
 var Cell = require('./Cell');
+var config = require('../../config');
 
 function Virus() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
@@ -11,24 +12,24 @@ Virus.prototype = new Cell();
 
 Virus.prototype.calcMove = null;
 
-Virus.prototype.feed = function(feeder, gameServer) {
+Virus.prototype.feed = function(feeder, room) {
     if (this.moveEngineTicks == 0) 
         this.setAngle(feeder.getAngle());
     this.mass += feeder.mass;
-    gameServer.removeNode(feeder);
+    room.removeNode(feeder);
 
     if (this.mass >= 200) { 
-        this.mass = gameServer.config.virusStartMass; 
-        gameServer.shootVirus(this);
+        this.mass = config.virusStartMass; 
+        room.shootVirus(this);
     }
 
 };
 
-Virus.prototype.onConsume = function(consumer, gameServer) {
+Virus.prototype.onConsume = function(consumer, room) {
     var client = consumer.owner;
     consumer.addMass(this.mass);
 
-    var numSplits = gameServer.config.playerMaxCells - client.cells.length;
+    var numSplits = config.playerMaxCells - client.cells.length;
     numSplits = Math.min(numSplits, 9); // max split is 9
     if (numSplits <= 0)
         return;
@@ -41,20 +42,20 @@ Virus.prototype.onConsume = function(consumer, gameServer) {
     var angle = consumer.lastMoveAngle;
     for (var k = 0; k < numSplits; k++) {
         angle = angle + unitAngle;
-        gameServer.createPlayerCell(client, consumer, angle, splitMass);
+        room.createPlayerCell(client, consumer, angle, splitMass);
     }
     
-    consumer.calcMergeTime(gameServer.config.playerRecombineTime);
+    consumer.calcMergeTime(config.playerRecombineTime);
     consumer.setMoveEngineData(0, 4, 0.70);
 };
 
-Virus.prototype.onAdd = function(gameServer) {
-    gameServer.nodesVirus.push(this);
+Virus.prototype.onAdd = function(room) {
+    room.nodesVirus.push(this);
 };
 
-Virus.prototype.onRemove = function(gameServer) {
-    var index = gameServer.nodesVirus.indexOf(this);
+Virus.prototype.onRemove = function(room) {
+    var index = room.nodesVirus.indexOf(this);
     if (index != -1) {
-        gameServer.nodesVirus.splice(index, 1);
+        room.nodesVirus.splice(index, 1);
     } 
 };

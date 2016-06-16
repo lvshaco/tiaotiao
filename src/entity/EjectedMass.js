@@ -1,4 +1,5 @@
 var Cell = require('./Cell');
+var config = require('../../config');
 
 function EjectedMass() {
     Cell.apply(this, Array.prototype.slice.call(arguments));
@@ -22,23 +23,23 @@ EjectedMass.prototype.sendUpdate = function() {
     return true;
 };
 
-EjectedMass.prototype.onRemove = function(gameServer) {
-    var index = gameServer.nodesEjected.indexOf(this);
+EjectedMass.prototype.onRemove = function(room) {
+    var index = room.nodesEjected.indexOf(this);
     if (index != -1) {
-        gameServer.nodesEjected.splice(index, 1);
+        room.nodesEjected.splice(index, 1);
     }
 };
 
-EjectedMass.prototype.onConsume = function(consumer, gameServer) {
+EjectedMass.prototype.onConsume = function(consumer, room) {
     consumer.addMass(this.mass);
 };
 
-EjectedMass.prototype.onAutoMove = function(gameServer) {
-    if (gameServer.nodesVirus.length < gameServer.config.virusMaxAmount) {
+EjectedMass.prototype.onAutoMove = function(room) {
+    if (room.nodesVirus.length < config.virusMaxAmount) {
         // feed virus
-        var v = gameServer.getNearestVirus(this);
+        var v = room.getNearestVirus(this);
         if (v) { 
-            v.feed(this, gameServer);
+            v.feed(this, room);
             return true;
         }
     }

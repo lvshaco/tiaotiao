@@ -1,10 +1,11 @@
 var Packet = require('./packet');
 var GameServer = require('./GameServer');
+var config = require('../config');
 
-function PlayerTracker(gameServer, socket) {
-    this.pID = gameServer.getNewPlayerID();
-    this.disconnect = -1;
+function PlayerTracker(room, socket) {
     this.info = {
+        mode: 0,
+        life: 0,
         roleid: 0,
         sex:0,
         province: 0,
@@ -20,19 +21,18 @@ function PlayerTracker(gameServer, socket) {
     this.copper = 0;
     this.exp = 0;
 
+    this.room = room;
     this.live = 0;
     this.lasttime = new Date();
     this.name = "";
     this.icon = 0;
     this.score = 0;
     this.rank = 0;
-    this.gameServer = gameServer;
     this.socket = socket;
     this.nodeAdditionQueue = [];
     this.nodeDestroyQueue = [];
     this.visibleNodes = [];
     this.cells = [];
-    this.gaming = false;
     this.mouse = {
         x: 0,
         y: 0
@@ -55,8 +55,8 @@ function PlayerTracker(gameServer, socket) {
     };
 
     this.centerPos = { 
-        x: (gameServer.config.borderLeft - gameServer.config.borderRight) / 2,
-        y: (gameServer.config.borderTop - gameServer.config.borderBottom) / 2
+        x: (config.borderLeft - config.borderRight) / 2,
+        y: (config.borderTop - config.borderBottom) / 2
     };
     this.lastEject = 0;    
 }
@@ -96,19 +96,19 @@ PlayerTracker.prototype.update = function() {
     
     // split cell
     if (this.socket.packetHandler.pressSplitCell) {
-        this.gameServer.splitCells(this);
+        this.room.splitCells(this);
         this.socket.packetHandler.pressSplitCell = false;
     }
 
     // eject mass
     if (this.socket.packetHandler.pressEjectMass) {
-        this.gameServer.ejectMass(this);
+        this.room.ejectMass(this);
         this.socket.packetHandler.pressEjectMass = false;
     }
 
     // rebirth
     if (this.cells.length == 0) {
-        this.gameServer.spawnPlayer(this);
+        this.room.spawnPlayer(this);
         this.calcLive();
         this.startLive();
     }
@@ -179,7 +179,7 @@ PlayerTracker.prototype.update = function() {
 
     // rank
     if (this.tick%10 == 0) {
-        var pack = this.gameServer.rankpacket;
+        var pack = this.room.rankpacket;
         if(pack) {
             this.socket.sendPacket(pack);
         }
@@ -187,23 +187,6 @@ PlayerTracker.prototype.update = function() {
 
     //
     this.tick += 1;
-    if (this.disconnect > -1) {
-        this.disconnect--;
-        if (this.disconnect == -1) {
-            var len = this.cells.length;
-            for (var i = 0; i < len; i++) {
-                var cell = this.socket.playerTracker.cells[0];
-                if (!cell) {
-                    continue;
-                }
-                this.gameServer.removeNode(cell);
-            }
-            var index = this.gameServer.clients.indexOf(this.socket);
-            if (index != -1) {
-                this.gameServer.clients.splice(index, 1);
-            }
-        }
-    }
 };
 
 PlayerTracker.prototype.updateSightRange = function() {
@@ -218,8 +201,8 @@ PlayerTracker.prototype.updateSightRange = function() {
     }
     // todo just test
     var factor = Math.pow(Math.min(64.0 / totalSize, 1), 0.4);
-    this.sightRangeX = this.gameServer.config.serverViewBaseX / factor;
-    this.sightRangeY = this.gameServer.config.serverViewBaseY / factor;
+    this.sightRangeX = config.serverViewBaseX / factor;
+    this.sightRangeY = config.serverViewBaseY / factor;
 };
 
 PlayerTracker.prototype.updateCenter = function() { 
@@ -254,8 +237,8 @@ PlayerTracker.prototype.calcViewBox = function() {
 
 PlayerTracker.prototype.calcVisibleNodes = function() {
     var newVisible = [];
-    for (var i = 0; i < this.gameServer.nodes.length; i++) {
-        node = this.gameServer.nodes[i];
+    for (var i = 0; i < this.room.nodes.length; i++) {
+        node = this.room.nodes[i];
         if (!node)
             continue;
         if (node.owner == this ||

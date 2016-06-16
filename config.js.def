@@ -1,7 +1,7 @@
 module.exports = {
         // server
         serverId: 1,
-        serverMaxConnections: 64, 
+        serverMaxConnections: 1024, 
         serverIp: "127.0.0.1",
         serverPort: 1448,
         serverLogLevel: 1,
@@ -10,7 +10,7 @@ module.exports = {
         redisPort: "17001",
         redisPasswd: "123456",
 
-
+        maxMember: 100,
         gameTime: 60*1000,
         maxRank: 100,
 

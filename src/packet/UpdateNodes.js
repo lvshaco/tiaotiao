@@ -1,4 +1,5 @@
 const assert = require('assert');
+
 function UpdateNodes(destroyQueue, nodes, nonVisibleNodes) {
     this.destroyQueue = destroyQueue;
     this.nodes = nodes;
