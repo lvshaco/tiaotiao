@@ -20,6 +20,7 @@ GameServer.prototype.start = function() {
     var serverId = config.serverId;
     var serverIp = config.serverIp;
     var serverPort = config.serverPort;
+    var serverName = config.serverName;
     var gamesvr = this;
 
     var rdPort = config.redisPort;
@@ -54,6 +55,7 @@ GameServer.prototype.start = function() {
                     serverid: serverId,
                     serverip: serverIp,
                     serverport: serverPort,
+                    servername: serverName
                 });
             // sync rooms
             var rooms = gamesvr.rooms;
