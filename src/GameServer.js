@@ -8,7 +8,7 @@ var PacketHandler = require('./PacketHandler');
 var Room = require('./Room');
 
 function GameServer() {
-    this.loginPlayers = [];
+    this.loginPlayers = {};
     this.clients = [];
     this.rooms = [];
 }

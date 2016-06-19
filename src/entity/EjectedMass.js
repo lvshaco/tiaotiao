@@ -32,6 +32,16 @@ EjectedMass.prototype.onRemove = function(room) {
 
 EjectedMass.prototype.onConsume = function(consumer, room) {
     consumer.addMass(this.mass);
+    var player = this.owner;
+    var other = consumer.owner;
+    if (player && other) {
+        var myid = player.info.roleid;
+        var opid = other.info.roleid;
+        if (myid > 0 && opid > 0) {
+            room.addRecommend(myid, opid, 1, 0);
+            room.addRecommend(opid, myid, 1, 0);
+        }
+    }
 };
 
 EjectedMass.prototype.onAutoMove = function(room) {

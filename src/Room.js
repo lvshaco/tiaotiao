@@ -22,6 +22,7 @@ function Room(mode) {
     this.currentFood = 0;
     this.movingNodes = [];
 
+    this.recommend = {};
     this.rankpacket;
 
     var now = new Date().getTime();
@@ -397,8 +398,12 @@ Room.prototype.getCellsInRange = function(cell) {
             multiplier = 1.33;
         }
 
-        if ((check.getSize() * multiplier) > cell.getSize()) {
-            continue;
+        var p2p = (check.getType()==0 && cell.getType()==0);
+
+        if (!p2p) {
+            if ((check.getSize() * multiplier) > cell.getSize()) {
+                continue;
+            }
         }
         var ctype = check.getType();
         var xs = Math.pow(check.position.x - cell.position.x, 2);
@@ -409,23 +414,43 @@ Room.prototype.getCellsInRange = function(cell) {
             eatingRange = cell.getSize()-check.getSize()
         else 
             eatingRange = cell.getSize()-(check.getSize()*0.7)
-        if (dist <= eatingRange) {
-            list.push(check);
-            check.inRange = true;
-            // recombine only one by one time
-            if (check.owner == cell.owner) {
-                var cells = cell.owner.cells
-                if (cells.length > 2) {
-                    for (var i = 0; i < cells.length; i++) {
-                        var c = cells[i];
-                        if (c != check) {
-                            c.shouldRecombine = false;
-                            c.recombineTicks = 0;
+        if (dist > eatingRange) {
+            continue;
+        }
+        if (p2p) {
+            var me_small = (check.getSize() * multiplier) > cell.getSize();
+            var other_small = (cell.getSize() * multiplier) > check.getSize();
+            if (me_small) {
+                if (other_small) {
+                    var player = cell.owner;
+                    var other = check.owner;
+                    if (player && other) {
+                        var myid = player.info.roleid;
+                        var opid = other.info.roleid;
+                        if (myid > 0 && opid > 0) {
+                            this.addRecommend(myid, opid, 2, 0);
+                            this.addRecommend(opid, myid, 2, 0);
                         }
                     }
                 }
+                continue;
             }
-        } 
+        }
+        list.push(check);
+        check.inRange = true;
+        // recombine only one by one time
+        if (check.owner == cell.owner) {
+            var cells = cell.owner.cells
+            if (cells.length > 2) {
+                for (var i = 0; i < cells.length; i++) {
+                    var c = cells[i];
+                    if (c != check) {
+                        c.shouldRecombine = false;
+                        c.recombineTicks = 0;
+                    }
+                }
+            }
+        }
     }
     return list;
 };
@@ -593,9 +618,11 @@ Room.prototype.updateRank = function() {
         return b.score - a.score;
     });
     var maxRank = config.maxRank || 100;
+    if (maxRank > ranks.length)
+        maxRank = ranks.length;
     this.rankpacket = new Packet.UpdateRank(ranks, maxRank);
-    ranks = ranks.slice(0, maxRank);
-    return ranks;
+    //ranks = ranks.slice(0, maxRank);
+    return {ranks:ranks, currank:maxRank}
 }
 
 function rollbox(rank, v) {
@@ -619,12 +646,20 @@ function rollbox(rank, v) {
   v.box2 = box2 ? 1:0;
 }
 Room.prototype.gameOver = function() {
-    var ranks = this.updateRank();
-    for (var i=0; i<ranks.length; ++i) {
+    var r = this.updateRank();
+    var ranks = r.ranks;
+    var curRank = r.currank;
+
+    var maxRank = config.maxRank || 100;
+
+    for (var i=0; i<curRank; ++i) {
         var c = ranks[i];
         c.rank = i+1;
     }
-    var maxRank = config.maxRank || 100;
+    for (var i=curRank; i<ranks.length; ++i) {
+        var c = ranks[i];
+        c.rank = 0;
+    }
     var roles = [];
     for (var i=0; i<this.clients.length; ++i) {
         var c = this.clients[i].playerTracker;
@@ -650,8 +685,9 @@ Room.prototype.gameOver = function() {
     }
     var rs = [];
     for (var i=0; i<ranks.length; ++i) {
-        var c = ranks[i]
-        rs.push(c.info.roleid)
+        var c = ranks[i];
+        if (c.rank == 0) break;
+        rs.push(c.info.roleid);
     }
     if (Ctx.nodeServer) {
         console.log("send FightResult");
@@ -659,9 +695,40 @@ Room.prototype.gameOver = function() {
     }
     for (var i=0; i<this.clients.length; ++i) {
         var c = this.clients[i].playerTracker;
-        var pack = new Packet.GameOver(c, ranks);
+        var pack = new Packet.GameOver(c, ranks, this);
         c.socket.sendPacket(pack);
         c.socket.close();
     }
 }
 
+Room.prototype.addRecommend = function(myid, otherid, type, value) {
+    var t = this.recommend[myid];
+    if (!t) {
+        t = {};
+        this.recommend[myid] = t;
+    }
+    var v = t[otherid];
+    if (!v) {
+        v = {type:type, value:value};
+        t[otherid] = v;
+    } else {
+        if (v.type > type) {
+            v.type = type
+        }
+        v.value += value
+    }
+}
+
+Room.prototype.getRecommend = function(myid, otherid) {
+    var t = this.recommend[myid];
+    if (t) {
+        var v = t[otherid];
+        if (v) {
+            if (v.type == 4 && v.value>=2) {
+                return 3;
+            }
+            return v.type;
+        }
+    }
+    return 0;
+}

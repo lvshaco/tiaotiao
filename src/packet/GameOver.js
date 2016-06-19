@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-function GameOver(my, clients) {
+function GameOver(my, clients, room) {
     var cl = clients.slice(0);
     var idx = cl.indexOf(my);
     if (idx !=-1) {
@@ -8,6 +8,7 @@ function GameOver(my, clients) {
     }
     cl.push(my);
     this.clients = cl;
+    this.room = room;
 }
 
 module.exports = GameOver;
@@ -28,11 +29,14 @@ struct GameOver {
     } vector;
 } */
 GameOver.prototype.build = function() {
+    var room = this.room;
+    var myid = this.clients[0].info.roleid;
+
     var count = this.clients.length;
     var len = 0;
     for (var i=0; i<count; ++i) {
         var c = this.clients[i]
-        len = len + 36+c.getName().length + 1;
+        len = len + 37+c.getName().length + 1;
     }
     var buflen = 3 + len;
 
@@ -44,8 +48,9 @@ GameOver.prototype.build = function() {
     view.setUint16(offset, count, true); offset += 2;
     for (var i=0; i<count; ++i) {
         var c = this.clients[i];
+        var otherid = c.info.roleid;
         view.setUint32(offset, c.rank, true); offset += 4;
-        view.setUint32(offset, c.info.roleid, true); offset += 4;
+        view.setUint32(offset, otherid, true); offset += 4;
         view.setUint32(offset, c.info.sex, true); offset += 4;
         view.setUint32(offset, c.info.province, true); offset += 4;
         view.setUint32(offset, c.info.city, true); offset += 4;
@@ -53,6 +58,14 @@ GameOver.prototype.build = function() {
         view.setUint32(offset, c.eat, true); offset += 4;
         view.setUint32(offset, c.copper, true); offset += 4;
         view.setUint32(offset, c.exp, true); offset += 4;
+        var recommend_type;
+        if (i==0) {
+            recommend_type = 0;
+        } else {
+            recommend_type = room.getRecommend(myid, otherid);
+        }
+        // 1果脯之恩 2天赐良缘 3技艺切磋 4生死之敌
+        view.setUint8(offset, recommend_type, true); offset += 1;
 
         var name = c.getName();
         if (name) {
