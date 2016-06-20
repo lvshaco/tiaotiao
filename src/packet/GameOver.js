@@ -36,7 +36,7 @@ GameOver.prototype.build = function() {
     var len = 0;
     for (var i=0; i<count; ++i) {
         var c = this.clients[i]
-        len = len + 37+c.getName().length + 1;
+        len = len + 41+c.getName().length + 1;
     }
     var buflen = 3 + len;
 
@@ -58,6 +58,7 @@ GameOver.prototype.build = function() {
         view.setUint32(offset, c.eat, true); offset += 4;
         view.setUint32(offset, c.copper, true); offset += 4;
         view.setUint32(offset, c.exp, true); offset += 4;
+        view.setUint32(offset, c.info.icon, true); offset += 4;
         var recommend_type;
         if (i==0) {
             recommend_type = 0;

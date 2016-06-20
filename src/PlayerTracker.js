@@ -8,6 +8,7 @@ function PlayerTracker(room, socket) {
         life: 0,
         roleid: 0,
         sex:0,
+        icon:0,
         province: 0,
         city: 0,
         heroid:0,

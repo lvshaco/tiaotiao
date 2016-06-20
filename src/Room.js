@@ -683,15 +683,9 @@ Room.prototype.gameOver = function() {
         rollbox(c.rank, one);
         roles.push(one);
     }
-    var rs = [];
-    for (var i=0; i<ranks.length; ++i) {
-        var c = ranks[i];
-        if (c.rank == 0) break;
-        rs.push(c.info.roleid);
-    }
     if (Ctx.nodeServer) {
         console.log("send FightResult");
-        Ctx.nodeServer.sendJson(11, {roles:roles, ranks:rs});
+        Ctx.nodeServer.sendJson(11, {roles:roles});
     }
     for (var i=0; i<this.clients.length; ++i) {
         var c = this.clients[i].playerTracker;
