@@ -17,6 +17,7 @@ function PlayerTracker(room, socket) {
         baozi:0,
         canying:0,
         huahuan:0,
+        name: "",
     };
     this.eat = 0;
     this.copper = 0;
@@ -77,7 +78,9 @@ PlayerTracker.prototype.setName = function(name) {
 PlayerTracker.prototype.getName = function() {
     return this.name;
 };
-
+PlayerTracker.prototype.getAcc = function() {
+    return this.info.name;
+}
 PlayerTracker.prototype.calcScore = function() {
     var s = 0;
     for (var i = 0; i < this.cells.length; i++) {
@@ -92,9 +95,29 @@ PlayerTracker.prototype.setColor = function(color) {
     this.color.g = color.g;
 };
 
+PlayerTracker.prototype.isdeath = function() {
+    //return true;
+    return this.info.mode == 1 && this.info.life <= 0;
+}
 PlayerTracker.prototype.update = function() {
     // update by 50ms
-    
+    if (this.isdeath()) {
+        return;
+    }
+    // rebirth
+    if (this.cells.length == 0) {
+        if (this.info.life > 0) {
+            this.info.life = this.info.life - 1;
+            this.socket.sendPacket(new Packet.UpdateLife(this.info.life));
+            if (this.isdeath()) {
+                return;
+            }
+        }
+        this.room.spawnPlayer(this);
+        this.calcLive();
+        this.startLive();
+    }
+   
     // split cell
     if (this.socket.packetHandler.pressSplitCell) {
         this.room.splitCells(this);
@@ -106,14 +129,7 @@ PlayerTracker.prototype.update = function() {
         this.room.ejectMass(this);
         this.socket.packetHandler.pressEjectMass = false;
     }
-
-    // rebirth
-    if (this.cells.length == 0) {
-        this.room.spawnPlayer(this);
-        this.calcLive();
-        this.startLive();
-    }
-
+ 
     // sync destroy node
     var i = 0;
     while (i < this.nodeDestroyQueue.length) {

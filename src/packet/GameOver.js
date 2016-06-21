@@ -28,6 +28,25 @@ struct GameOver {
         name bytes;// 名字字节
     } vector;
 } */
+
+function packname(view, offset, name) {
+    if (name) {
+        view.setUint8(offset, name.length, true);
+        offset += 1;
+        for (var j = 0; j < name.length; j++) {
+            var c = name.charCodeAt(j);
+            if (c) {
+                view.setUint8(offset, c, true);
+            }
+            offset += 1;
+        }
+    } else {
+        view.setUint8(offset, 0, true);
+        offset += 1;
+    }
+    return offset;
+}
+
 GameOver.prototype.build = function() {
     var room = this.room;
     var myid = this.clients[0].info.roleid;
@@ -36,7 +55,7 @@ GameOver.prototype.build = function() {
     var len = 0;
     for (var i=0; i<count; ++i) {
         var c = this.clients[i]
-        len = len + 41+c.getName().length + 1;
+        len = len + 41+c.getName().length + 1 + c.getAcc().length+1;
     }
     var buflen = 3 + len;
 
@@ -46,6 +65,7 @@ GameOver.prototype.build = function() {
     view.setUint8(0, 18, true); // Packet ID
     var offset = 1;
     view.setUint16(offset, count, true); offset += 2;
+    //console.log("count:"+count);
     for (var i=0; i<count; ++i) {
         var c = this.clients[i];
         var otherid = c.info.roleid;
@@ -68,21 +88,10 @@ GameOver.prototype.build = function() {
         // 1果脯之恩 2天赐良缘 3技艺切磋 4生死之敌
         view.setUint8(offset, recommend_type, true); offset += 1;
 
-        var name = c.getName();
-        if (name) {
-            view.setUint8(offset, name.length, true);
-            offset += 1;
-            for (var j = 0; j < name.length; j++) {
-                var c = name.charCodeAt(j);
-                if (c) {
-                    view.setUint8(offset, c, true);
-                }
-                offset += 1;
-            }
-        } else {
-            view.setUint8(offset, 0, true);
-            offset += 1;
-        }
+        offset = packname(view, offset, c.getName());
+        //console.log(c.getName()+" "+offset);
+        offset = packname(view, offset, c.getAcc());
+        //console.log(c.getAcc()+" "+offset);
     }
     if (offset != buflen) {
     console.log("GameOver offset="+offset+" buflen="+buflen);

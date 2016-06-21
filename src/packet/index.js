@@ -5,4 +5,5 @@ module.exports = {
     UpdateNodes: require('./UpdateNodes'),
     UpdateRank: require('./UpdateRank'),
     GameOver: require('./GameOver'),
+    UpdateLife: require('./UpdateLife'),
 };

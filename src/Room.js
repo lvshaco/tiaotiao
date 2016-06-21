@@ -7,7 +7,7 @@ var Entity = require('./entity');
 
 var ROOMID = 1;
 
-function Room(mode) {
+function Room(mode, gamesvr) {
     this.run = true;
     this.mode = mode; // 0: free mode; 1: live mode
     this.roomid = ROOMID;
@@ -30,6 +30,8 @@ function Room(mode) {
     this.tick = 0;
     this.fullTick = 0;
     this.starttime = now;
+
+    this.gamesvr = gamesvr;
 
     this.startingFood();
 
@@ -95,6 +97,7 @@ Room.prototype.unjoinClient = function(ws) {
     player.mode = 0;
     player.room = null;
     ws.playerTracker = null;
+    return 0;
 }
 
 Room.prototype.addNode = function(node) {
@@ -601,6 +604,19 @@ Room.prototype.update = function(now) {
 
     if ((this.fullTick%8)==0) {
         this.updateRank(); 
+    }
+    if (this.fullTick%40 == 0) { // per second
+        for (var i =0; i< this.clients.length; ) {
+            var c = this.clients[i];
+            var p = c.playerTracker;
+            if (p.isdeath()) {
+                if (this.gamesvr.logoutClient(c) == 0) {
+                    c.close();
+                    continue;
+                }
+            }
+            ++i;
+        }
     }
 };
 // update rank

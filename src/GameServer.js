@@ -165,20 +165,22 @@ GameServer.prototype.findRoom = function(mode) {
             }
         }
     }
-    var r = new Room(mode);
+    var r = new Room(mode, this);
     rooms.push(r);
     return r;
 };
 
 GameServer.prototype.logoutClient = function(ws) {
+    var err;
     var player = ws.playerTracker;
     if (player) {
-        player.room.unjoinClient(ws);
+        err = player.room.unjoinClient(ws);
     }
     var index = this.clients.indexOf(ws);
     if (index != -1) {
         this.clients.splice(index, 1);
     }
+    return err;
 }
 
 // loop
@@ -188,7 +190,7 @@ GameServer.prototype.mainLoop = function() {
     for (var i=0; i<rooms.length; ) {
         var r = rooms[i];
         r.update(now);
-        
+       
         if (!r.run) {
             var clients = r.clients;
             for (var j=0; j<client.length; ++j) {
