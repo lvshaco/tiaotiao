@@ -76,7 +76,8 @@ Room.prototype.joinClient = function(ws, info, nick, icon) {
         config.borderRight,
         config.borderTop,
         config.borderBottom,
-        config.gameTime-elapsed
+        config.gameTime-elapsed,
+        player.info.life,
     ));
 
 }
