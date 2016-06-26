@@ -8,8 +8,8 @@ var PacketHandler = require('./PacketHandler');
 var Room = require('./Room');
 
 function GameServer() {
-    this.loginPlayers = {};
-    this.clients = [];
+    this.loginPlayers = {}; //断线不清
+    this.sockets = []; //断线清
     this.rooms = [];
 }
 
@@ -112,14 +112,14 @@ GameServer.prototype.start = function() {
 
     function connectionEstablished(ws) {
         console.log("Conn: "+ws._socket.remoteAddress);
-        if (this.clients.length >= config.serverMaxConnections) { 
-            console.log("[Warn] Connection is full:" + this.clients.length);
+        if (this.sockets.length >= config.serverMaxConnections) { 
+            console.log("[Warn] Connection is full:" + this.sockets.length);
             ws.close();
             return;
         }
         function close(error) {
             console.log("Conn close: "+ this.socket._socket.remoteAddress+" "+error);
-            gamesvr.logoutClient(this);
+            gamesvr.afkClient(this);
         }
 
         ws.packetHandler = new PacketHandler(this, ws);
@@ -131,18 +131,20 @@ GameServer.prototype.start = function() {
         };
         ws.on('error', close.bind(bindObject));
         ws.on('close', close.bind(bindObject));
-        this.clients.push(ws);
+        this.sockets.push(ws);
     }
 };
 
 // login
 GameServer.prototype.loginClient = function(ws, roleid, key, nick, icon) {
+    console.log("Game loginClient: "+roleid);
     // check has in loginPlayers, todo check has enter state
     var info = this.loginPlayers[roleid];
     if (!info || 
         info.key != key) {
         console.log("Invalid player enter: "+roleid+","+key);
         info = null;
+        return;
     }
     if (ws.playerTracker) { // has call Room joinClient
         return;
@@ -151,16 +153,25 @@ GameServer.prototype.loginClient = function(ws, roleid, key, nick, icon) {
     if (info) {
         mode = info.mode;
     }    
-    var room = this.findRoom(mode);
+    var room = this.findRoom(info.roomid, mode);
     room.joinClient(ws, info, nick, icon);
+    info.roomid = room.roomid; // save roomid for disconnect
 }
 
-GameServer.prototype.findRoom = function(mode) {
+GameServer.prototype.findRoom = function(roomid, mode) {
     var rooms = this.rooms;
+    if (roomid > 0) { // look for foomid
+        for (var i=0; i<rooms.length; ++i) {
+            var r = rooms[i];
+            if (r.roomid == roomid) {
+                return r;
+            }
+        }
+    }
     for (var i=0; i<rooms.length; ++i) {
         var r = rooms[i];
         if (r.mode == mode) {
-            if (r.clients.length < config.maxMember) {
+            if (!r.isFull()) {
                 return r;
             }
         }
@@ -173,13 +184,36 @@ GameServer.prototype.findRoom = function(mode) {
 GameServer.prototype.logoutClient = function(ws) {
     var err;
     var player = ws.playerTracker;
+    var roleid = 0;
     if (player) {
+        roleid = player.info.roleid;
         err = player.room.unjoinClient(ws);
     }
-    var index = this.clients.indexOf(ws);
+    var index = this.sockets.indexOf(ws);
     if (index != -1) {
-        this.clients.splice(index, 1);
+        this.sockets.splice(index, 1);
     }
+    ws.close();
+
+    if (roleid > 0) {
+        console.log("Game logoutClient: "+roleid);
+        delete this.loginPlayers[roleid];
+    }
+    return err;
+}
+
+GameServer.prototype.afkClient = function(ws) {
+    var err;
+    var player = ws.playerTracker;
+    if (player) {
+        err = player.room.afkClient(ws);
+    }
+    var index = this.sockets.indexOf(ws);
+    if (index != -1) {
+        this.sockets.splice(index, 1);
+    }
+    // don't call close, after onclose !!!
+    //ws.close();
     return err;
 }
 
@@ -189,23 +223,10 @@ GameServer.prototype.mainLoop = function() {
     var rooms = this.rooms;
     for (var i=0; i<rooms.length; ) {
         var r = rooms[i];
-        r.update(now);
-       
-        if (!r.run) {
-            var clients = r.clients;
-            for (var j=0; j<client.length; ++j) {
-                var c = clients[j];
-
-                var index = this.clients.indexOf(c);
-                if (index != -1) {
-                    this.clients.splice(index, 1);
-                }
-
-                var roleid = c.playerTracker.info.roleid;
-                if (roleid > 0) {
-                    delete this.loginPlayers[roleid];
-                }
-            }
+        if (r.update(now) == 1) {
+            r.foreachClient(function(c) {
+                this.logoutClient(c.socket);
+                }.bind(this));
             rooms.splice(i,1);
         } else {
             i++;
@@ -241,4 +262,4 @@ WebSocket.prototype.sendPacket = function(packet) {
 
 WebSocket.prototype.sendJson = function(msgid, v) {
     this.send(JSON.stringify({id: msgid, body: v}))
-}
+};

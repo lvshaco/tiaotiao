@@ -5,9 +5,6 @@ function PacketHandler(gameServer, socket) {
     this.gameServer = gameServer;
     this.socket = socket;
     this.protocol = 0; // reserve
-
-    this.pressEjectMass = false;
-    this.pressSplitCell = false;
 }
 
 module.exports = PacketHandler;
@@ -53,10 +50,16 @@ PacketHandler.prototype.handleMessage = function(message) {
             }
             break;
         case 17: // split cell
-            this.pressSplitCell = true;
+            var client = this.socket.playerTracker;
+            if (client) {
+                client.pressSplitCell = true;
+            }
             break;
         case 21: // eject mass
-            this.pressEjectMass = true;
+            var client = this.socket.playerTracker;
+            if (client) {
+                client.pressEjectMass = true;
+            }
             break;
         case 255: // enter
             if (view.byteLength >= 15) {

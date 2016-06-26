@@ -1,5 +1,6 @@
 var Packet = require('./packet');
 var GameServer = require('./GameServer');
+var SocketNone = require('./SocketNone');
 var config = require('../config');
 
 function PlayerTracker(room, socket) {
@@ -61,6 +62,9 @@ function PlayerTracker(room, socket) {
         y: (config.borderTop - config.borderBottom) / 2
     };
     this.lastEject = 0;    
+
+    this.pressEjectMass = false;
+    this.pressSplitCell = false;
 }
 
 module.exports = PlayerTracker;
@@ -119,15 +123,15 @@ PlayerTracker.prototype.update = function() {
     }
    
     // split cell
-    if (this.socket.packetHandler.pressSplitCell) {
+    if (this.pressSplitCell) {
         this.room.splitCells(this);
-        this.socket.packetHandler.pressSplitCell = false;
+        this.pressSplitCell = false;
     }
 
     // eject mass
-    if (this.socket.packetHandler.pressEjectMass) {
+    if (this.pressEjectMass) {
         this.room.ejectMass(this);
-        this.socket.packetHandler.pressEjectMass = false;
+        this.pressEjectMass = false;
     }
  
     // sync destroy node
@@ -189,6 +193,8 @@ PlayerTracker.prototype.update = function() {
             updateNodes,
             nonVisibleNodes
         ));
+    } else {
+        console.log("None UpdateNodes");
     }
 
     this.nodeDestroyQueue = [];
@@ -264,4 +270,12 @@ PlayerTracker.prototype.calcVisibleNodes = function() {
         }
     }
     return newVisible;
+};
+
+PlayerTracker.prototype.socketUnattach = function() {
+    this.socket = new SocketNone();
+};
+
+PlayerTracker.prototype.socketAttach = function(ws) {
+    this.socket = ws;
 };

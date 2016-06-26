@@ -1,4 +1,3 @@
-const assert = require('assert');
 var lutil = require('../lutil');
 function UpdateRank(clients, count) {
     this.clients = clients;
@@ -49,8 +48,8 @@ UpdateRank.prototype.build = function() {
         }
     }
     if (offset != buflen) {
-    lutil.log("UpdateRank offset="+offset+" buflen="+buflen);
+    console.log("UpdateRank offset="+offset+" buflen="+buflen);
     }
-    console.log("UpdateRank size="+buflen);
+    //console.log("UpdateRank size="+buflen);
     return buf;
 };

@@ -13,7 +13,8 @@ function Room(mode, gamesvr) {
     this.roomid = ROOMID;
     ROOMID++;
 
-    this.clients = [];
+    this.clients = {};
+    this.nclient = 0;
     this.nodes = [];
     this.nodesVirus = []; 
     this.nodesEjected = [];
@@ -43,8 +44,8 @@ module.exports = Room;
 Room.prototype.onHallConnect = function(ws) {
     var rolelist = [];
     var clients = this.clients;
-    for (var i=0; i<clients.length; ++i) {
-        var c = clients[i].playerTracker;
+    for (var roleid in clients) {
+        var c = clients[roleid];
         if (c.info.roleid > 0) {
             rolelist.push(c.info.roleid);
         }
@@ -55,19 +56,33 @@ Room.prototype.onHallConnect = function(ws) {
     }
 }
 
+Room.prototype.isFull = function() {
+    return this.nclients >= config.maxMember;
+}
+
+Room.prototype.foreachClient = function(func) {
+    var clients = this.clients;
+    for (var roleid in clients) {
+        var c = clients[roleid];
+        func(c);
+    }
+}
 Room.prototype.joinClient = function(ws, info, nick, icon) {
-    var player = new PlayerTracker(this, ws);
-    ws.playerTracker = player;
+    var roleid = info.roleid;
+    var player = this.clients[roleid];
+    if (!player) {
+        player = new PlayerTracker(this, ws);
+        ws.playerTracker = player;
+        player.info = info
+        player.setName(nick);
+        player.icon = icon;
 
-    player.info = info
-    player.setName(nick);
-    player.icon = icon;
-
-    this.clients.push(ws);
-    
-    this.spawnPlayer(player);
-
-    console.log('sendSetBorder');
+        this.clients[roleid] = player;
+        this.nclient ++; 
+        this.spawnPlayer(player);
+    }
+    console.log("Room joinClient: "+this.roomid+
+            " roleid:"+roleid+" key:"+info.key+" reenter:"+info.reenter);
     var now = new Date().getTime();
     var starttime = this.starttime;
     var elapsed = now-starttime;
@@ -79,26 +94,47 @@ Room.prototype.joinClient = function(ws, info, nick, icon) {
         config.gameTime-elapsed,
         player.info.life
     ));
-
 }
 
 Room.prototype.unjoinClient = function(ws) {
-    var index = this.clients.indexOf(ws);
-    if (index == -1) {
+    var player = ws.playerTracker;
+    if (!player) {
+        return;
+    }
+    ws.playerTracker = null;
+    var roleid = player.info.roleid;
+    player = this.clients[roleid];
+    if (!player) {
         return 1;
     }
+    console.log("Room unjoinClient: "+this.roomid+" roleid:"+roleid);
     // remove cells
-    var player = ws.playerTracker;
     var len = player.cells.length;
     for (var i=0; i<len; ++i) {
         var cell = player.cells[i];
         this.removeNode(cell);
     }
-    this.clients.splice(index, 1);
+    this.clients[roleid] = null;
+    this.nclient--;
+
     player.mode = 0;
     player.room = null;
-    ws.playerTracker = null;
     return 0;
+}
+
+Room.prototype.afkClient = function(ws) {
+    var player = ws.playerTracker;
+    if (!player) {
+        return;
+    }
+    ws.playerTracker = null;
+    var roleid = player.info.roleid;
+    player = this.clients[roleid];
+    if (!player) {
+        return 1;
+    }
+    console.log("Room afkClient: "+this.roomid+" roleid:"+roleid);
+    player.socketUnattach();
 }
 
 Room.prototype.addNode = function(node) {
@@ -107,11 +143,9 @@ Room.prototype.addNode = function(node) {
     node.onAdd(this);
 
     // add to visible nodes
-    for (var i = 0; i < this.clients.length; i++) {
-        client = this.clients[i].playerTracker;
-        if (!client) {
-            continue;
-        }
+    var clients = this.clients;
+    for (var roleid in clients) {
+        var client = clients[roleid];
         if (node.visibleCheck(client.viewBox, client.centerPos)) {
             client.nodeAdditionQueue.push(node);
         }
@@ -129,11 +163,9 @@ Room.prototype.removeNode = function(node) {
     }
     node.onRemove(this);
 
-    for (var i = 0; i < this.clients.length; i++) {
-        var client = this.clients[i].playerTracker;
-        if (!client) {
-            continue;
-        }
+    var clients = this.clients;
+    for (var roleid in clients) {
+        var client = clients[roleid];
         client.nodeDestroyQueue.push(node);
     }
 };
@@ -537,12 +569,10 @@ Room.prototype.updateMoveEngine = function(moveCells) {
 };
 
 Room.prototype.updateClients = function() {
-    for (var i = 0; i < this.clients.length; i++) {
-        if (typeof this.clients[i] == "undefined") {
-            continue;
-        }
-        var playerTracker = this.clients[i].playerTracker;
-        playerTracker.update();
+    var clients = this.clients;
+    for (var roleid in clients) {
+        var client = clients[roleid];
+        client.update();
     }
 };
 
@@ -573,7 +603,7 @@ Room.prototype.updateCells = function() {
 };
 
 Room.prototype.update = function(now) {
-    if (!this.run) return;
+    if (!this.run) return 1; // room can be clear
 
     if (now - this.starttime >= config.gameTime) {
         this.gameOver();
@@ -607,29 +637,30 @@ Room.prototype.update = function(now) {
         this.updateRank(); 
     }
     if (this.fullTick%40 == 0) { // per second
-        for (var i =0; i< this.clients.length; ) {
-            var c = this.clients[i];
-            var p = c.playerTracker;
-            if (p.isdeath()) {
-                if (this.gamesvr.logoutClient(c) == 0) {
-                    c.close();
-                    continue;
-                }
+        console.log("tick");
+
+        var temp = [];
+        var clients = this.clients;
+        for (var roleid in clients) {
+            var c = clients[roleid];
+            if (c.isdeath()) {
+                temp.push(c);
             }
-            ++i;
+        }
+        for (var i=0; i<temp.length; ++i) {
+            var c = temp[i];
+            this.gamesvr.logoutClient(c.socket);
         }
     }
-};
+}
 // update rank
 Room.prototype.updateRank = function() {
     var ranks = [];
-    for (var i = 0; i < this.clients.length; i++) {
-        if (typeof this.clients[i] == "undefined") {
-            continue;
-        }
-        var p = this.clients[i].playerTracker;
-        p.calcScore();
-        ranks.push(p);
+    var clients = this.clients;
+    for (var roleid in clients) {
+        var c = clients[roleid];
+        c.calcScore();
+        ranks.push(c);
     }
     ranks.sort(function(a,b) {
         return b.score - a.score;
@@ -678,8 +709,9 @@ Room.prototype.gameOver = function() {
         c.rank = 0;
     }
     var roles = [];
-    for (var i=0; i<this.clients.length; ++i) {
-        var c = this.clients[i].playerTracker;
+    var clients = this.clients;
+    for (var roleid in clients) {
+        var c = clients[roleid];
         c.copper = 10;
         c.exp = 160*2;
         if (c.rank != 0) {
@@ -704,8 +736,8 @@ Room.prototype.gameOver = function() {
         console.log("send FightResult");
         Ctx.nodeServer.sendJson(11, {roles:roles});
     }
-    for (var i=0; i<this.clients.length; ++i) {
-        var c = this.clients[i].playerTracker;
+    for (var roleid in clients) {
+        var c = clients[roleid];
         var pack = new Packet.GameOver(c, ranks, this);
         c.socket.sendPacket(pack);
         c.socket.close();
@@ -743,3 +775,4 @@ Room.prototype.getRecommend = function(myid, otherid) {
     }
     return 0;
 }
+

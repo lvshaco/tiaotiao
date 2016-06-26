@@ -18,15 +18,21 @@ HallHandler.prototype.handleMessage = function(data) {
         break;
     case 10:
         var players = this.gameServer.loginPlayers;
-        var roleid = body.roleid
-        if (players[roleid]) {
+        var roleid = body.roleid;
+        var old = players[roleid];
+        if (old) {
+            old.reenter = body.reenter;
+            body = old;
             code = 1;
+        } else if (body.reenter) {
+            code = 2;
         } else {
+            body.roomid = 0;
+            players[roleid] = body;
             code = 0;
         }
-        players[roleid] = body;
-        this.socket.sendJson(10, {code:code});
+        this.socket.sendJson(10, {code:code, key:body.key});
     default:
         break;
     }
-};
+}
