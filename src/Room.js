@@ -80,6 +80,9 @@ Room.prototype.joinClient = function(ws, info, nick, icon) {
         this.clients[roleid] = player;
         this.nclient ++; 
         this.spawnPlayer(player);
+    } else {
+        player.socketAttach(ws);
+        ws.playerTracker = player;
     }
     console.log("Room joinClient: "+this.roomid+
             " roleid:"+roleid+" key:"+info.key+" reenter:"+info.reenter);
