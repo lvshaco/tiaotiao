@@ -50,6 +50,6 @@ UpdateRank.prototype.build = function() {
     if (offset != buflen) {
     console.log("UpdateRank offset="+offset+" buflen="+buflen);
     }
-    //console.log("UpdateRank size="+buflen);
+//    console.log("UpdateRank size="+buflen);
     return buf;
 };

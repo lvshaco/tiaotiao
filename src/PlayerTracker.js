@@ -24,6 +24,8 @@ function PlayerTracker(room, socket) {
     this.copper = 0;
     this.exp = 0;
 
+    this.wait_rebirth = false;
+    this.offline = false;
     this.room = room;
     this.live = 0;
     this.lasttime = new Date();
@@ -112,6 +114,7 @@ PlayerTracker.prototype.update = function() {
     if (this.cells.length == 0) {
         if (this.info.life > 0) {
             this.info.life = this.info.life - 1;
+            console.log("UpdateLife:"+this.info.life);
             this.socket.sendPacket(new Packet.UpdateLife(this.info.life));
             if (this.isdeath()) {
                 return;
@@ -122,93 +125,95 @@ PlayerTracker.prototype.update = function() {
         this.startLive();
     }
    
-    // split cell
-    if (this.pressSplitCell) {
-        this.room.splitCells(this);
-        this.pressSplitCell = false;
-    }
+    if (!this.offline) {
+        // split cell
+        if (this.pressSplitCell) {
+            this.room.splitCells(this);
+            this.pressSplitCell = false;
+        }
 
-    // eject mass
-    if (this.pressEjectMass) {
-        this.room.ejectMass(this);
-        this.pressEjectMass = false;
-    }
- 
-    // sync destroy node
-    var i = 0;
-    while (i < this.nodeDestroyQueue.length) {
-        var index = this.visibleNodes.indexOf(this.nodeDestroyQueue[i]);
-        if (index > -1) {
-            this.visibleNodes.splice(index, 1);
-            i++;
+        // eject mass
+        if (this.pressEjectMass) {
+            this.room.ejectMass(this);
+            this.pressEjectMass = false;
+        }
+     
+        // sync destroy node
+        var i = 0;
+        while (i < this.nodeDestroyQueue.length) {
+            var index = this.visibleNodes.indexOf(this.nodeDestroyQueue[i]);
+            if (index > -1) {
+                this.visibleNodes.splice(index, 1);
+                i++;
+            } else {
+                this.nodeDestroyQueue.splice(i, 1);
+            }
+        }
+
+
+        // sync non visible node && update node
+        var nonVisibleNodes = []; 
+        var updateNodes = []; 
+
+        if (this.tick%3==0) {
+            var newVisible = this.calcViewBox();
+            try { 
+                for (var i = 0; i < this.visibleNodes.length; i++) {
+                    var index = newVisible.indexOf(this.visibleNodes[i]);
+                    if (index == -1) {
+                        nonVisibleNodes.push(this.visibleNodes[i]);
+                    }
+                }
+                for (var i = 0; i < newVisible.length; i++) {
+                    var index = this.visibleNodes.indexOf(newVisible[i]);
+                    if (index == -1) {
+                        updateNodes.push(newVisible[i]);
+                    }
+                }
+            } finally {} 
+
+            this.visibleNodes = newVisible;
         } else {
-            this.nodeDestroyQueue.splice(i, 1);
-        }
-    }
-
-
-    // sync non visible node && update node
-    var nonVisibleNodes = []; 
-    var updateNodes = []; 
-
-    if (this.tick%3==0) {
-        var newVisible = this.calcViewBox();
-        try { 
-            for (var i = 0; i < this.visibleNodes.length; i++) {
-                var index = newVisible.indexOf(this.visibleNodes[i]);
-                if (index == -1) {
-                    nonVisibleNodes.push(this.visibleNodes[i]);
-                }
+            for (var i = 0; i < this.nodeAdditionQueue.length; i++) {
+                var node = this.nodeAdditionQueue[i];
+                this.visibleNodes.push(node);
+                updateNodes.push(node);
             }
-            for (var i = 0; i < newVisible.length; i++) {
-                var index = this.visibleNodes.indexOf(newVisible[i]);
-                if (index == -1) {
-                    updateNodes.push(newVisible[i]);
-                }
+        }
+
+        for (var i = 0; i < this.visibleNodes.length; i++) {
+            var node = this.visibleNodes[i];
+            if (node.sendUpdate()) {
+                updateNodes.push(node);
             }
-        } finally {} 
-
-        this.visibleNodes = newVisible;
-    } else {
-        for (var i = 0; i < this.nodeAdditionQueue.length; i++) {
-            var node = this.nodeAdditionQueue[i];
-            this.visibleNodes.push(node);
-            updateNodes.push(node);
         }
-    }
 
-    for (var i = 0; i < this.visibleNodes.length; i++) {
-        var node = this.visibleNodes[i];
-        if (node.sendUpdate()) {
-            updateNodes.push(node);
+        // to client
+        if (this.nodeDestroyQueue.length > 0 || 
+            updateNodes.length > 0 ||
+            nonVisibleNodes.length > 0) {
+            this.socket.sendPacket(new Packet.UpdateNodes(
+                this.nodeDestroyQueue,
+                updateNodes,
+                nonVisibleNodes
+            ));
+        } else {
+            console.log("None UpdateNodes");
         }
-    }
 
-    // to client
-    if (this.nodeDestroyQueue.length > 0 || 
-        updateNodes.length > 0 ||
-        nonVisibleNodes.length > 0) {
-        this.socket.sendPacket(new Packet.UpdateNodes(
-            this.nodeDestroyQueue,
-            updateNodes,
-            nonVisibleNodes
-        ));
-    } else {
-        console.log("None UpdateNodes");
-    }
+        this.nodeDestroyQueue = [];
+        this.nodeAdditionQueue = []; 
 
-    this.nodeDestroyQueue = [];
-    this.nodeAdditionQueue = []; 
-
-    // rank
-    if (this.tick%10 == 0) {
-        var pack = this.room.rankpacket;
-        if(pack) {
-            this.socket.sendPacket(pack);
+        // rank
+        if (this.tick%10 == 0) {
+            var pack = this.room.rankpacket;
+            if(pack) {
+                this.socket.sendPacket(pack);
+            }
         }
-    }
 
-    //
+        //
+    }
     this.tick += 1;
 };
 
@@ -274,8 +279,25 @@ PlayerTracker.prototype.calcVisibleNodes = function() {
 
 PlayerTracker.prototype.socketUnattach = function() {
     this.socket = new SocketNone();
+    this.offline = true;
+    this.wait_rebirth = false;
+    this.visibleNodes = [];
 };
 
 PlayerTracker.prototype.socketAttach = function(ws) {
     this.socket = ws;
+    this.offline = false;
+    this.wait_rebirth = false;
+//    this.visibleNodes = [];
+    
+    var cells = this.cells;
+    for (var i=0; i<cells.length; ++i) {
+        var c = cells[i];
+        console.log('sendAddNode');
+        ws.sendPacket(new Packet.AddNode(c));
+    }
 };
+
+PlayerTracker.prototype.canop = function(ws) {
+    return !this.wait_rebirth;
+}

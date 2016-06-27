@@ -426,6 +426,9 @@ Room.prototype.getCellsInRange = function(cell) {
         }
         var multiplier = 1.0;
         if (check.getType() == 0) {
+            if (!check.owner.canop()) {
+                continue;
+            }
             if (check.owner == cell.owner) { // recombine check
                 if (!cell.shouldRecombine || !check.shouldRecombine) {
                     continue;
@@ -504,7 +507,9 @@ Room.prototype.updateMoveEngine = function(moveCells) {
             continue;
         }
         var client = cell.owner;
-
+        if (!client.canop())  {
+            continue;
+        }
         cell.calcMove(client.mouse.x, client.mouse.y, this, moveCells);
 
         var list = this.getCellsInRange(cell);

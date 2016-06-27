@@ -131,17 +131,21 @@ PlayerCell.prototype.onConsume = function(consumer, room) {
         other.eat +=1;
     }
     var player = this.owner
-    if (player && other) {
-        if (player.cells.length==0) {
-            var myid = player.info.roleid;
-            var opid = other.info.roleid;
-            if (myid > 0 && opid > 0) {
-                room.addRecommend(myid, opid, 4, 1);
-                room.addRecommend(opid, myid, 4, 1);
+    if (player ) {
+        if (player.cells.length<=1) {
+            player.socket.sendPacket(new Packet.RebirthNotify(other.name));
+            player.wait_rebirth = true;
+            if (other) {
+                var myid = player.info.roleid;
+                var opid = other.info.roleid;
+                if (myid > 0 && opid > 0) {
+                    room.addRecommend(myid, opid, 4, 1);
+                    room.addRecommend(opid, myid, 4, 1);
 
-                var rd = Ctx.redis;
-                rd.sadd("opponents:"+myid, opid);
-                rd.incr("eats:"+opid+":"+myid);
+                    var rd = Ctx.redis;
+                    rd.sadd("opponents:"+myid, opid);
+                    rd.incr("eats:"+opid+":"+myid);
+                }
             }
         }
     }

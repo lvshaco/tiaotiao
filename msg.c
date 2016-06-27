@@ -19,7 +19,7 @@ struct EnterBoard {
 struct EjectMass {
     MSG_HEAD;
 };
-
+// 22 确认复活
 // 17 分裂（按键）
 struct SplitCell {
     MSG_HEAD;
@@ -103,7 +103,7 @@ struct GameOver {
         name bytes;// 名字字节
     } vector;
 } 
-
+// 19
 EnterBoard msg;
 msg.msgid = 255;
 msg.protocol = 0; // 现在直接填0，当前游戏版本

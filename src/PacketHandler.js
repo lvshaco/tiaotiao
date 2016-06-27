@@ -39,7 +39,7 @@ PacketHandler.prototype.handleMessage = function(message) {
             //if (view.byteLength == 13) {
             if (view.byteLength >= 9) {
                 var client = this.socket.playerTracker;
-                if (client) {
+                if (client && client.canop()) {
                     client.mouse.x = view.getInt32(1, true);
                     client.mouse.y = view.getInt32(5, true);
 
@@ -51,16 +51,21 @@ PacketHandler.prototype.handleMessage = function(message) {
             break;
         case 17: // split cell
             var client = this.socket.playerTracker;
-            if (client) {
+            if (client && client.canop()) {
                 client.pressSplitCell = true;
             }
             break;
         case 21: // eject mass
             var client = this.socket.playerTracker;
-            if (client) {
+            if (client && client.canop()) {
                 client.pressEjectMass = true;
             }
             break;
+        case 22: // rebirth
+            var client = this.socket.playerTracker;
+            if (client && client.wait_rebirth) {
+                client.wait_rebirth = false;
+            }
         case 255: // enter
             if (view.byteLength >= 15) {
                 this.protocol = view.getUint32(1, true);
