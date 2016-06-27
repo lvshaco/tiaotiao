@@ -115,7 +115,7 @@ Room.prototype.unjoinClient = function(ws) {
     var cells = player.cells;
     while (cells.length > 0) {
         var c = cells.splice(0, 1);
-        this.removeNode(c);
+        this.removeNode(c[0]);
     }
     delete this.clients[roleid];
     this.nclient--;
