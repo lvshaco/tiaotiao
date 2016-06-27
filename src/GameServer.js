@@ -153,9 +153,12 @@ GameServer.prototype.loginClient = function(ws, roleid, key, nick, icon) {
     if (info) {
         mode = info.mode;
     }    
-    var room = this.findRoom(info.roomid, mode);
+    var room = info.room;
+    if (!room) {
+        room = this.findRoom(0, mode);
+    }
     room.joinClient(ws, info, nick, icon);
-    info.roomid = room.roomid; // save roomid for disconnect
+    info.room = room; // save room for disconnect
 }
 
 GameServer.prototype.findRoom = function(roomid, mode) {
@@ -180,10 +183,9 @@ GameServer.prototype.findRoom = function(roomid, mode) {
     rooms.push(r);
     return r;
 };
-
-GameServer.prototype.logoutClient = function(ws) {
+GameServer.prototype.logoutPlayer = function(player) {
+    var ws = player.socket;
     var err;
-    var player = ws.playerTracker;
     var roleid = 0;
     if (player) {
         roleid = player.info.roleid;
@@ -196,12 +198,15 @@ GameServer.prototype.logoutClient = function(ws) {
     ws.close();
 
     if (roleid > 0) {
-        console.log("Game logoutClient: "+roleid);
+        console.log("Game logoutPlayer: "+roleid);
         delete this.loginPlayers[roleid];
     }
     return err;
-}
 
+}
+GameServer.prototype.logoutClient = function(ws) {
+    return this.logoutPlayer(ws.playerTracker);
+}
 GameServer.prototype.afkClient = function(ws) {
     var err;
     var player = ws.playerTracker;

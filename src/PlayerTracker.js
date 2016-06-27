@@ -106,6 +106,7 @@ PlayerTracker.prototype.isdeath = function() {
     return this.info.mode == 1 && this.info.life <= 0;
 }
 PlayerTracker.prototype.update = function() {
+    //console.log("update ...");
     // update by 50ms
     if (this.isdeath()) {
         return;
@@ -282,6 +283,8 @@ PlayerTracker.prototype.socketUnattach = function() {
     this.offline = true;
     this.wait_rebirth = false;
     this.visibleNodes = [];
+    this.nodeAdditionQueue = [];
+    this.nodeDestroyQueue = [];
 };
 
 PlayerTracker.prototype.socketAttach = function(ws) {

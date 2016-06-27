@@ -32,6 +32,21 @@ HallHandler.prototype.handleMessage = function(data) {
             code = 0;
         }
         this.socket.sendJson(10, {code:code, key:body.key});
+        break;
+    case 12:
+        var code = 1;
+        var players = this.gameServer.loginPlayers;
+        var roleid = body.roleid;
+        var info = players[roleid];
+        if (info && info.room) {
+            var player = info.room.findPlayer(roleid);
+            if (player) {
+                this.gameServer.logoutPlayer(player);
+                code = 0;
+            }
+        }
+        this.socket.sendJson(12, {code:code});
+        break;
     default:
         break;
     }

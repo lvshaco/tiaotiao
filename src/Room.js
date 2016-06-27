@@ -111,11 +111,11 @@ Room.prototype.unjoinClient = function(ws) {
         return 1;
     }
     console.log("Room unjoinClient: "+this.roomid+" roleid:"+roleid);
-    // remove cells
-    var len = player.cells.length;
-    for (var i=0; i<len; ++i) {
-        var cell = player.cells[i];
-        this.removeNode(cell);
+    // remove cells, removeNode will call PlayerCell::onRemove, will splice cells array
+    var cells = player.cells;
+    while (cells.length > 0) {
+        var c = cells.splice(0, 1);
+        this.removeNode(c);
     }
     delete this.clients[roleid];
     this.nclient--;
@@ -150,7 +150,8 @@ Room.prototype.addNode = function(node) {
     for (var roleid in clients) {
         var client = clients[roleid];
         if (node.visibleCheck(client.viewBox, client.centerPos)) {
-            client.nodeAdditionQueue.push(node);
+            if (!client.offline)
+                client.nodeAdditionQueue.push(node);
         }
     }
 };
@@ -169,7 +170,8 @@ Room.prototype.removeNode = function(node) {
     var clients = this.clients;
     for (var roleid in clients) {
         var client = clients[roleid];
-        client.nodeDestroyQueue.push(node);
+        if (!client.offline)
+            client.nodeDestroyQueue.push(node);
     }
 };
 
@@ -784,3 +786,6 @@ Room.prototype.getRecommend = function(myid, otherid) {
     return 0;
 }
 
+Room.prototype.findPlayer = function(roleid) {
+    return this.clients[roleid];
+}
