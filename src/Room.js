@@ -80,6 +80,7 @@ Room.prototype.joinClient = function(ws, info, nick, icon) {
         this.clients[roleid] = player;
         this.nclient ++; 
         this.spawnPlayer(player);
+        player.startLive();
     } else {
         player.socketAttach(ws);
         ws.playerTracker = player;

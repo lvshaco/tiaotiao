@@ -64,7 +64,7 @@ lutil.getSizeFromMass = function(mass) {
 };
 
 lutil.getSpeedFromMass = function(mass) {
-    return Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(mass,-0.005))/10);
+    return Math.ceil((-5297.01638750265 + 5611.24781004064 * Math.pow(mass,-0.005))/25);
 };
 
 module.exports = lutil;

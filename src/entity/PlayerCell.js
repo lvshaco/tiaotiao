@@ -133,8 +133,7 @@ PlayerCell.prototype.onConsume = function(consumer, room) {
     var player = this.owner
     if (player ) {
         if (player.cells.length<=1) {
-            player.socket.sendPacket(new Packet.RebirthNotify(other.name));
-            player.wait_rebirth = true;
+            player.eatname = other.name;
             if (other) {
                 var myid = player.info.roleid;
                 var opid = other.info.roleid;

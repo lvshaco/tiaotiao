@@ -3,6 +3,8 @@ var GameServer = require('./GameServer');
 var SocketNone = require('./SocketNone');
 var config = require('../config');
 
+var REBIRTH_TIME = 5
+
 function PlayerTracker(room, socket) {
     this.info = {
         mode: 0,
@@ -20,11 +22,13 @@ function PlayerTracker(room, socket) {
         huahuan:0,
         name: "",
     };
+    this.eatname = ""; // 吃你的人名字
     this.eat = 0;
     this.copper = 0;
     this.exp = 0;
 
     this.wait_rebirth = false;
+    this.wait_rebirth_tick = 0;
     this.offline = false;
     this.room = room;
     this.live = 0;
@@ -111,6 +115,12 @@ PlayerTracker.prototype.update = function() {
     if (this.isdeath()) {
         return;
     }
+    if (this.wait_rebirth) {
+        if (this.tick - this.wait_rebirth_tick >= REBIRTH_TIME*20) { // 20tick/s
+            this.wait_rebirth = false;
+            this.wait_rebirth_tick = 0;
+        }
+    }
     // rebirth
     if (this.cells.length == 0) {
         if (this.info.life > 0) {
@@ -121,9 +131,14 @@ PlayerTracker.prototype.update = function() {
                 return;
             }
         }
-        this.room.spawnPlayer(this);
-        this.calcLive();
-        this.startLive();
+        if (!this.offline) {
+            if (this.mode == 0) { //自由模式
+                this.socket.sendPacket(new Packet.RebirthNotify(this.eatname, REBIRTH_TIME));
+                this.wait_rebirth = true;
+                this.wait_rebirth_tick = this.tick;
+            }
+            this.room.spawnPlayer(this);
+        }
     }
    
     if (!this.offline) {
@@ -285,6 +300,7 @@ PlayerTracker.prototype.socketUnattach = function() {
     this.visibleNodes = [];
     this.nodeAdditionQueue = [];
     this.nodeDestroyQueue = [];
+    this.calcLive()
 };
 
 PlayerTracker.prototype.socketAttach = function(ws) {
@@ -293,11 +309,16 @@ PlayerTracker.prototype.socketAttach = function(ws) {
     this.wait_rebirth = false;
 //    this.visibleNodes = [];
     
+    this.startLive();
     var cells = this.cells;
-    for (var i=0; i<cells.length; ++i) {
-        var c = cells[i];
-        console.log('sendAddNode');
-        ws.sendPacket(new Packet.AddNode(c));
+    if (cells.length == 0) {
+        this.room.spawnPlayer(this);
+    } else {
+        for (var i=0; i<cells.length; ++i) {
+            var c = cells[i];
+            console.log('sendAddNode');
+            ws.sendPacket(new Packet.AddNode(c));
+        }
     }
 };
 
