@@ -121,6 +121,7 @@ PlayerTracker.prototype.update = function() {
             this.wait_rebirth_tick = 0;
         }
     }
+    //console.log("player update:"+this.cells.length);
     // rebirth
     if (this.cells.length == 0) {
         if (this.info.life > 0) {
@@ -139,7 +140,12 @@ PlayerTracker.prototype.update = function() {
             }
             this.room.spawnPlayer(this);
         }
-    }
+    } 
+    //else {
+    //    console.log("=========remove");
+    //    this.room.removeNode(this.cells[0]);
+    //    return ;
+    //}
    
     if (!this.offline) {
         // split cell
@@ -295,6 +301,7 @@ PlayerTracker.prototype.calcVisibleNodes = function() {
 
 PlayerTracker.prototype.socketUnattach = function() {
     this.socket = new SocketNone();
+    this.socket.playerTracker = this;
     this.offline = true;
     this.wait_rebirth = false;
     this.visibleNodes = [];
@@ -304,6 +311,7 @@ PlayerTracker.prototype.socketUnattach = function() {
 };
 
 PlayerTracker.prototype.socketAttach = function(ws) {
+    ws.playerTracker = this;
     this.socket = ws;
     this.offline = false;
     this.wait_rebirth = false;

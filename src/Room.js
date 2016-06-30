@@ -83,7 +83,6 @@ Room.prototype.joinClient = function(ws, info, nick, icon) {
         player.startLive();
     } else {
         player.socketAttach(ws);
-        ws.playerTracker = player;
     }
     console.log("Room joinClient: "+this.roomid+
             " roleid:"+roleid+" key:"+info.key+" reenter:"+info.reenter);
@@ -100,18 +99,15 @@ Room.prototype.joinClient = function(ws, info, nick, icon) {
     ));
 }
 
-Room.prototype.unjoinClient = function(ws) {
-    var player = ws.playerTracker;
-    if (!player) {
-        return;
-    }
+Room.prototype.unjoinPlayer = function(player) {
+    var ws = player.socket;
     ws.playerTracker = null;
     var roleid = player.info.roleid;
     player = this.clients[roleid];
     if (!player) {
         return 1;
     }
-    console.log("Room unjoinClient: "+this.roomid+" roleid:"+roleid);
+    console.log("Room unjoinPlayer: "+this.roomid+" roleid:"+roleid);
     // remove cells, removeNode will call PlayerCell::onRemove, will splice cells array
     var cells = player.cells;
     while (cells.length > 0) {
@@ -660,7 +656,7 @@ Room.prototype.update = function(now) {
         }
         for (var i=0; i<temp.length; ++i) {
             var c = temp[i];
-            this.gamesvr.logoutClient(c.socket);
+            this.gamesvr.logoutPlayer(c);
         }
     }
 }

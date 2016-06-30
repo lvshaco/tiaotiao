@@ -119,7 +119,7 @@ GameServer.prototype.start = function() {
         }
         function close(error) {
             console.log("Conn close: "+ this.socket._socket.remoteAddress+" "+error);
-            gamesvr.afkClient(this);
+            gamesvr.afkClient(ws);
         }
 
         ws.packetHandler = new PacketHandler(this, ws);
@@ -189,7 +189,7 @@ GameServer.prototype.logoutPlayer = function(player) {
     var roleid = 0;
     if (player) {
         roleid = player.info.roleid;
-        err = player.room.unjoinClient(ws);
+        err = player.room.unjoinPlayer(player);
     }
     var index = this.sockets.indexOf(ws);
     if (index != -1) {
@@ -204,9 +204,9 @@ GameServer.prototype.logoutPlayer = function(player) {
     return err;
 
 }
-GameServer.prototype.logoutClient = function(ws) {
-    return this.logoutPlayer(ws.playerTracker);
-}
+//GameServer.prototype.logoutClient = function(ws) {
+//    return this.logoutPlayer(ws.playerTracker);
+//}
 GameServer.prototype.afkClient = function(ws) {
     var err;
     var player = ws.playerTracker;
@@ -230,7 +230,7 @@ GameServer.prototype.mainLoop = function() {
         var r = rooms[i];
         if (r.update(now) == 1) {
             r.foreachClient(function(c) {
-                this.logoutClient(c.socket);
+                this.logoutPlayer(c);
                 }.bind(this));
             rooms.splice(i,1);
         } else {
