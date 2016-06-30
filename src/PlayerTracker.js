@@ -133,7 +133,7 @@ PlayerTracker.prototype.update = function() {
             }
         }
         if (!this.offline) {
-            if (this.mode == 0) { //自由模式
+            if (this.info.mode == 0) { //自由模式
                 this.socket.sendPacket(new Packet.RebirthNotify(this.eatname, REBIRTH_TIME));
                 this.wait_rebirth = true;
                 this.wait_rebirth_tick = this.tick;
@@ -142,9 +142,11 @@ PlayerTracker.prototype.update = function() {
         }
     } 
     //else {
-    //    console.log("=========remove");
-    //    this.room.removeNode(this.cells[0]);
-    //    return ;
+    //    if (!this.wait_rebirth) {
+    //    	console.log("=========remove");
+    //    	this.room.removeNode(this.cells[0]);
+    //    	return ;
+    //    }
     //}
    
     if (!this.offline) {
