@@ -393,7 +393,7 @@ Room.prototype.shootVirus = function(parent) {
     for (var i = 0; i < 20; i++) {
         xisum += Math.pow(0.85,i);
     };
-    startSpeed = 250/xisum;
+    startSpeed = 180/xisum;
 
     var mass = parent.mass/2;
     var newVirus = new Entity.Virus(lutil.getNextNodeId(), null, parentPos, 

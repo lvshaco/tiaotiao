@@ -18,6 +18,9 @@ Virus.prototype.feed = function(feeder, room) {
     this.mass += feeder.mass;
     room.removeNode(feeder);
 
+    this.setMoveEngineData(10, 2, 0.85);
+    room.setAsMovingNode(this);
+
     if (this.mass >= 200) { 
         this.mass = config.virusStartMass; 
         room.shootVirus(this);
