@@ -395,8 +395,10 @@ Room.prototype.shootVirus = function(parent) {
     };
     startSpeed = 250/xisum;
 
+    var mass = parent.mass/2;
     var newVirus = new Entity.Virus(lutil.getNextNodeId(), null, parentPos, 
-            config.virusStartMass);
+            mass);
+    parent.mass -= mass;
     newVirus.setAngle(parent.getAngle());
     newVirus.setMoveEngineData(startSpeed, 20, 0.85);
 
@@ -497,7 +499,7 @@ Room.prototype.getCellsInRange = function(cell) {
 };
 // update
 Room.prototype.updateMoveEngine = function(moveCells) {
-
+    // 50ms
     // control by client
     var len = this.nodesPlayer.length;
     for (var i = 0; i < len; i++) {
