@@ -60,7 +60,8 @@ lutil.getRandomColor = function() {
 };
 
 lutil.getSizeFromMass = function(mass) {
-    return Math.ceil((2.64965 * Math.pow(mass,0.7) + 50.72030)/2);
+    //return Math.ceil((2.64965 * Math.pow(mass,0.7) + 50.72030)/2);
+    return 4 + Math.sqrt(mass) * 6;
 };
 
 lutil.getSpeedFromMass = function(mass) {

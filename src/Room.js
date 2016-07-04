@@ -287,8 +287,8 @@ Room.prototype.createPlayerCell = function(client, parent, angle, mass) {
     var startSpeed = 0;
     var xisum = 0;
 
-    for (var i = 0; i < 4; i++) {
-        xisum += Math.pow(0.9,i);
+    for (var i = 0; i < 8; i++) {
+        xisum += Math.pow(0.5,i);
     };
     startSpeed = splitSpeed/xisum;
     var newPos = {
@@ -298,10 +298,10 @@ Room.prototype.createPlayerCell = function(client, parent, angle, mass) {
 
     var newCell = new Entity.PlayerCell(lutil.getNextNodeId(), client, newPos, mass);
     newCell.setAngle(angle);
-    newCell.setMoveEngineData(startSpeed, 4, 0.9);
+    newCell.setMoveEngineData(startSpeed, 8, 0.5);
     newCell.calcMergeTime(config.playerRecombineTime);
     parent.mass -= mass; 
-    parent.setMoveEngineData(0, 4, 0.9);
+    parent.setMoveEngineData(0, 8, 0.5);
     this.addNode(newCell);
     return true;
 };
@@ -364,7 +364,7 @@ Room.prototype.ejectMass = function(client) {
         var xisum = 0;
 
         for (var j = 0; j < 8; j++) {
-            xisum += Math.pow(0.85,j);
+            xisum += Math.pow(0.5,j);
         };
          var startSpeed = 300/xisum;
 
@@ -372,7 +372,7 @@ Room.prototype.ejectMass = function(client) {
                 client, startPos, config.ejectMass);
         ejected.setAngle(angle);
         //ejected.setMoveEngineData(config.ejectSpeed, 20, 0.85);
-        ejected.setMoveEngineData(startSpeed, 8, 0.85);
+        ejected.setMoveEngineData(startSpeed, 8, 0.5);
         ejected.setColor(cell.getColor());
 
         this.nodesEjected.push(ejected);

@@ -132,11 +132,12 @@ Cell.prototype.calcMovePhys = function(config) {
     var Y = this.position.y + (this.moveEngineSpeed * Math.cos(this.angle));
 
     // Movement engine
-    if (this.moveEngineSpeed <= this.moveDecay * 3) this.moveEngineSpeed = 0;
-    var speedDecrease = this.moveEngineSpeed - this.moveEngineSpeed * this.moveDecay;
-    //var speedDecrease = this.moveEngineSpeed / this.moveEngineTicks;
-    this.moveEngineSpeed -= speedDecrease; // Decaying speed twice as slower
-    //this.moveEngineTicks -= 0.5; // Ticks passing twice as slower
+    
+    this.moveEngineSpeed = this.moveEngineSpeed * this.moveDecay;
+    if (this.moveEngineSpeed <= this.moveDecay * 3)
+    {
+        this.moveEngineSpeed = 0;
+    }
     this.moveEngineTicks -= 1;
     if (this.moveEngineTicks <= 0) 
     {
