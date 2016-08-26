@@ -444,7 +444,8 @@ Room.prototype.getCellsInRange = function(cell) {
         var p2p = (check.getType()==0 && cell.getType()==0);
 
         if (!p2p) {
-            if ((check.getSize() * multiplier) > cell.getSize()) {
+            //if ((check.getSize() * multiplier) > cell.getSize()) {
+            if ((check.mass * multiplier) > cell.mass) {
                 continue;
             }
         }
@@ -461,8 +462,10 @@ Room.prototype.getCellsInRange = function(cell) {
             continue;
         }
         if (p2p) {
-            var me_small = (check.getSize() * multiplier) > cell.getSize();
-            var other_small = (cell.getSize() * multiplier) > check.getSize();
+            //var me_small = (check.getSize() * multiplier) > cell.getSize();
+            //var other_small = (cell.getSize() * multiplier) > check.getSize();
+            var me_small = (check.mass * multiplier) > cell.mass;
+            var other_small = (cell.mass * multiplier) > check.mass;
             if (me_small) {
                 if (other_small) {
                     var player = cell.owner;
