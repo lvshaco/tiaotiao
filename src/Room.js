@@ -312,10 +312,10 @@ Room.prototype.splitCells = function(client) {
         var cell = client.cells[i];
         if (client.cells.length < config.playerMaxCells &&
             cell.mass >= config.playerMinMassSplit) {
-            //var deltaY = client.mouse.y - cell.position.y;
-            //var deltaX = client.mouse.x - cell.position.x;
-            //var angle = Math.atan2(deltaX, deltaY);
-            var angle = Math.atan2(client.movedir.x, client.movedir.y);
+            var deltaY = client.mouse.y - cell.position.y;
+            var deltaX = client.mouse.x - cell.position.x;
+            var angle = Math.atan2(deltaX, deltaY);
+            //var angle = Math.atan2(client.movedir.x, client.movedir.y);
             if (angle == 0) angle = cell.lastMoveAngle;
             this.createPlayerCell(client, cell, angle, cell.mass / 2);
         }
