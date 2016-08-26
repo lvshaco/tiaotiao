@@ -455,7 +455,7 @@ Room.prototype.getCellsInRange = function(cell) {
         var dist = Math.sqrt(xs + ys);
         var eatingRange
         if (check.getType() == 1)
-            eatingRange = cell.getSize()-check.getSize()
+            eatingRange = cell.getSize()+check.getSize()
         else 
             eatingRange = cell.getSize()-(check.getSize()*0.7)
         if (dist > eatingRange) {
